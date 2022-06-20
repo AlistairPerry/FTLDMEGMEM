@@ -1,4 +1,4 @@
-function preprocall_MMN_v2_ek_APmod_sensspace_fixes
+function preprocall_MMN_sensspace
 %% Preprocessing script for Roving MMN
 % Rik Henson (2017), Modifications by Ece K (2020).
 % Modifications indicated by EK

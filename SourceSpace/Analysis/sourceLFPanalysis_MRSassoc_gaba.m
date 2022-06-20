@@ -156,7 +156,7 @@ for pplasubj = 1:length(PlacData_pat(:,1))
         
         %Also find diag info
         
-        PatMatch=strcmp(DiagData(:,1), PlacData_pat{pplasubj});
+        PatMatch=strcmpi(DiagData(:,1), PlacData_pat{pplasubj});
 
         extdiaginfo(submatcount_pat,1) = DiagData(PatMatch==1,2);
         
@@ -581,7 +581,7 @@ for pdrugsubj = 1:length(DrugData_pat(:,1))
         
         %Ext diag info again
         
-        PatMatch=strcmp(DiagData(:,1), DrugData_pat{pdrugsubj});
+        PatMatch=strcmpi(DiagData(:,1), DrugData_pat{pdrugsubj});
 
         extdiaginfo(submatcount_pat,1) = DiagData(PatMatch==1,2);
         
@@ -1216,6 +1216,7 @@ avgdev_d_pat_col_keep = avgdev_d_pat_col(pats_bothsess_keep==1,:,:);
 
 % And lastly diagnostic info
 
+extdiaginfoold = extdiaginfo;
 extdiaginfo = extdiaginfo(pats_bothsess_keep==1,:);
 
 
@@ -2225,11 +2226,13 @@ for source = 1:nsources
     
     lmm_druggabaint(:,6) = cell2mat(extdiaginfo);
     
+    lmm_druggabaint(:,7) = ExtTable_Dems_Age;
     
-    lmm_druggabaint_table = table(lmm_druggabaint(:,1), lmm_druggabaint(:,2), lmm_druggabaint(:,3), lmm_druggabaint(:,4), lmm_druggabaint(:,5), lmm_druggabaint(:,6));
+    
+    lmm_druggabaint_table = table(lmm_druggabaint(:,1), lmm_druggabaint(:,2), lmm_druggabaint(:,3), lmm_druggabaint(:,4), lmm_druggabaint(:,5), lmm_druggabaint(:,6), lmm_druggabaint(:,7));
     
     
-    lmm_druggabaint_table.Properties.VariableNames = {'Subject', 'GABA', 'PLA', 'MEM', 'Diff', 'Diag'};
+    lmm_druggabaint_table.Properties.VariableNames = {'Subject', 'GABA', 'PLA', 'MEM', 'Diff', 'Diag', 'Age'};
     
     
     writetable(lmm_druggabaint_table, [FigOutDir '/' figoutprefix '_LFPs_' 'MRSIFGgabaassoc_' 'meanMMN3_DrugDiff_Pats_fullsample_stats_' 'LMMtableforR_' grandavgdev_pat.label{source} '.txt'], 'Delimiter','tab');
@@ -2307,11 +2310,13 @@ for source = 1:nsources
     
     lmm_druggabaint(:,6) = cell2mat(extdiaginfo);
     
+    lmm_druggabaint(:,7) = ExtTable_Dems_Age;
     
-    lmm_druggabaint_table = table(lmm_druggabaint(:,1), lmm_druggabaint(:,2), lmm_druggabaint(:,3), lmm_druggabaint(:,4), lmm_druggabaint(:,5), lmm_druggabaint(:,6));
+    
+    lmm_druggabaint_table = table(lmm_druggabaint(:,1), lmm_druggabaint(:,2), lmm_druggabaint(:,3), lmm_druggabaint(:,4), lmm_druggabaint(:,5), lmm_druggabaint(:,6), lmm_druggabaint(:,7));
     
     
-    lmm_druggabaint_table.Properties.VariableNames = {'Subject', 'GABA', 'PLA', 'MEM', 'Diff', 'Diag'};
+    lmm_druggabaint_table.Properties.VariableNames = {'Subject', 'GABA', 'PLA', 'MEM', 'Diff', 'Diag', 'Age'};
     
     
     writetable(lmm_druggabaint_table, [FigOutDir '/' figoutprefix '_LFPs_' 'MRSIFGgabacorassoc_' 'meanMMN3_DrugDiff_Pats_fullsample_stats_' 'LMMtableforR_' grandavgdev_pat.label{source} '.txt'], 'Delimiter','tab');
