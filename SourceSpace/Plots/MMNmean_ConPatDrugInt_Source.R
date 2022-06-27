@@ -1,0 +1,624 @@
+setwd("/Users/alistairperry/Documents/Cambridge/Project/Analysis/LFPs/newmaxfilter_icafixes/LFPs_COH_wrad_allMEGch_wfids/C_Plots/DrugAnalysis")
+
+#Load packages
+library("plyr")
+library("lattice")
+library("ggplot2")
+library("dplyr")
+library("readr")
+library("rmarkdown")
+library("Rmisc")
+library("devtools")
+library("gghalves")
+
+library("readxl")
+
+# width and height variables for saved plots - leave it as default for now
+
+w = 4
+h = 3
+
+
+# Set fig output dir
+
+FigOutDir <- "/Users/alistairperry/Documents/Cambridge/Project/Analysis/LFPs/newmaxfilter_icafixes/LFPs_COH_wrad_allMEGch_wfids/C_Plots/DrugAnalysis/MeanPlots/"
+
+dir.create(FigOutDir)
+
+
+# Data Table
+
+ROInames = c("RIFG", "RSTG", "RAUD")
+
+Labnames = c("R IFG", "R STG", "R AUD")
+
+
+#rep3
+
+for (i in seq(1,3)) {
+  
+datfname <- paste("adv_ssst_newmaxf_fixICA_wfids_nodipcor_nop10p19_LFP_", ROInames[i], "_MMNmean_rep3_ConsandPats_DrugInt_fullsample_forJASP.txt", sep="")
+
+MMNtab <- read.delim(datfname)
+
+
+CN <- subset(MMNtab, Group == 1)
+
+Pat <- subset(MMNtab, Group == 2)
+
+
+
+# Start variables
+
+
+CN1dat <- CN$meanMMNcol_PLA
+CN2dat <- CN$meanMMNcol_MEM
+Pat1dat <- Pat$meanMMNcol_PLA
+Pat2dat <- Pat$meanMMNcol_MEM
+
+
+ncnt <- length(CN1dat)
+npat <- length(Pat1dat)
+
+ncntscans <- ncnt*2
+npatscans <- npat*2
+totalscans <- ncntscans+npatscans
+
+x1 <- as.integer(totalscans)
+x1[1:ncntscans] <- rep(c(1,2), each=ncnt)
+x1[(ncntscans+1):totalscans] <- rep(c(3,4), each=npat)
+
+cntids <- rep(seq(1,ncnt),2)
+patids <- rep(seq(ncnt+1,ncnt+npat),2)
+
+d <- data.frame(y = c(CN1dat, CN2dat, Pat1dat, Pat2dat), x = x1, ID_Order = as.factor(c(cntids, patids)))
+
+y_lim_min <- min(d$y)
+y_lim_max <- max(d$y)
+
+
+#Descriptive stats for calculating and connecting group means
+
+#First do the descriptives
+
+group <- c(1,2,1,2)
+
+score_mean_1 <- mean(CN1dat)
+score_mean_2 <- mean(CN2dat)
+score_mean_3 <- mean(Pat1dat)
+score_mean_4 <- mean(Pat2dat)
+
+score_mean <- c(score_mean_1, score_mean_2, score_mean_3, score_mean_4)
+
+#cis
+
+# score_sem_1 <- sd(CN1dat)/sqrt(length(CN1dat))
+# score_sem_2 <- sd(CN2dat)/sqrt(length(CN2dat))
+# 
+# score_sem_3 <- sd(Pat1dat)/sqrt(length(Pat1dat))
+# score_sem_4 <- sd(Pat2dat)/sqrt(length(Pat2dat))
+# 
+# sem <- c(score_ci_1, score_ci_2, score_ci_3, score_ci_4)
+# 
+# summary_df <- data.frame(group, score_mean, sem)
+
+
+#### get confidence intervals
+score_ci_1 <- CI(CN1dat, ci = 0.95) #CN1
+score_ci_2 <- CI(CN2dat, ci = 0.95) #CN1
+score_ci_3 <- CI(Pat1dat, ci = 0.95) #CN1
+score_ci_4 <- CI(Pat2dat, ci = 0.95) #CN1
+
+# CI's around mean
+ci <- c((score_ci_1[1] - score_ci_1[3]), (score_ci_2[1] - score_ci_2[3]), (score_ci_3[1] - score_ci_3[3]), (score_ci_4[1] - score_ci_4[3]))
+
+summary_df <- data.frame(group, score_mean, ci)
+
+
+
+#First we must again define the x-coordinates of the means.
+x_tick_means_x <- c(1.15, 1.85) #same as above
+
+#Start plotting
+
+set.seed(321)
+
+x1fk <- numeric(ncnt+npat)
+
+x1fk[1:ncntscans] <- rep(x_tick_means_x, each=ncnt)
+x1fk[(ncntscans+1):totalscans] <- rep(x_tick_means_x, each=npat)
+
+xj <- jitter(x1fk, amount = .09)
+
+#xj <- jitter(x1fk)
+
+d$xj <- xj
+
+d$x_tick_means_x <- as.factor(x_tick_means_x)
+
+
+f1 <- ggplot(data = d, aes(y = y)) +
+  
+  #Add geom_() objects
+  
+  geom_point(data = d %>% filter(x =="3"), aes(x = xj), color = 'red', size = 1.5,alpha = .6) +
+  geom_point(data = d %>% filter(x =="4"), aes(x = xj), color = 'red', size = 1.5,alpha = .6) +
+  
+  geom_point(data = d %>% filter(x =="1"), aes(x = xj), color = 'blue', size = 1.5, alpha = .6) +
+  geom_point(data = d %>% filter(x =="2"), aes(x = xj), color = 'blue', size = 1.5, alpha = .6) +
+  
+  geom_line(data = d %>% filter(x =="3" | x =="4"), aes(x = xj, group = ID_Order), color = 'red', alpha = 0.2) +
+  
+  geom_line(data = d %>% filter(x =="1" | x =="2"), aes(x = xj, group = ID_Order), color = 'blue', alpha = 0.2) +
+  
+ 
+  
+  scale_x_continuous(breaks=x_tick_means_x, labels=c("PLA", "MEM"))+
+  
+  theme_classic()+
+  
+  ggtitle(Labnames[i]) + 
+  
+  xlab("Drug Session") +
+  
+  ylab("Mean MMN (125-175ms)") +
+  
+  
+  
+  theme(plot.title = element_text(face="bold", size = 14, hjust = 0.5, color = "black"), axis.title.y = element_text(face="bold", size = 11), axis.title.x = element_text(face="bold", size = 12, color = "black")) + 
+  
+  theme(axis.text.x = element_text(face="bold", size = 12, color = "black"), axis.text.y = element_text(face="bold", size = 11, color = "black")) +
+  
+  
+  #Turn caption off
+  
+  theme(legend.position = "right") +
+  
+  coord_cartesian(ylim=c(y_lim_min, y_lim_max)) +
+  
+  
+  #Add lines connecting the two means
+  
+  geom_line(data = summary_df[3:4,], aes(x = x_tick_means_x, y = score_mean),
+            color = 'red', size = 1.5, alpha = 1) + 
+  
+  geom_line(data = summary_df[1:2,], aes(x = x_tick_means_x, y = score_mean),
+            color = 'blue', size = 1.5, alpha = 1) +
+  
+  
+  # means with shape = 16, filled circle
+  geom_errorbar(data = d %>% filter(x=="1"), aes(x = 1, y = score_mean[1], ymin = score_mean[1]-ci[1], ymax = score_mean[1]+ci[1]),
+                position = position_nudge(0.15),
+                color = "blue", width = 0.10, size = 0.8, alpha = 0.8) +
+  
+  geom_point(data = d %>% filter(x=="1"), aes(x = 1, y = score_mean[1]),
+             position = position_nudge(x = 0.15), shape = 21, color = "black", fill = "blue",  size = 3, alpha = 0.8) +
+  
+  
+  geom_errorbar(data = d %>% filter(x=="3"), aes(x = 1, y = score_mean[3], ymin = score_mean[3]-ci[3], ymax = score_mean[3]+ci[3]),
+                position = position_nudge(0.15),
+                color = "red", width = 0.10, size = 0.8, alpha = 0.8) +
+  
+  geom_point(data = d %>% filter(x=="3"), aes(x = 1, y = score_mean[3]),
+             position = position_nudge(x = 0.15), shape = 21, color = "black", fill = "red",  size = 3, alpha = 0.8) +
+  
+  
+  geom_errorbar(data = d %>% filter(x=="2"), aes(x = 2, y = score_mean[2], ymin = score_mean[2]-ci[2], ymax = score_mean[2]+ci[2]),
+                position = position_nudge(-0.15),
+                color = "blue", width = 0.10, size = 0.8, alpha = 0.8) +
+  
+  geom_point(data = d %>% filter(x=="2"), aes(x = 2, y = score_mean[2]),
+             position = position_nudge(x = -0.15), shape = 21, color = "black", fill = "blue",  size = 3, alpha = 0.8) +
+  
+  
+  geom_errorbar(data = d %>% filter(x=="4"), aes(x = 2, y = score_mean[4], ymin = score_mean[4]-ci[4], ymax = score_mean[4]+ci[4]),
+                position = position_nudge(-0.15),
+                color = "red", width = 0.10, size = 0.8, alpha = 0.8) +
+  
+  geom_point(data = d %>% filter(x=="4"), aes(x = 2, y = score_mean[4]),
+             position = position_nudge(x = -0.15), shape = 21, color = "black", fill = "red",  size = 3, alpha = 0.8)
+
+f1
+
+figfname<-paste(FigOutDir, '/LFP_MMN3_ConPatDrugInt_wfig_', ROInames[i], '.tiff', sep="")
+ggsave(figfname, width = w, height = h)
+
+
+}
+
+
+#rep6
+
+for (i in seq(1,3)) {
+  
+  datfname <- paste("adv_ssst_newmaxf_fixICA_wfids_nodipcor_nop10p19_LFP_", ROInames[i], "_MMNmean_ConsandPats_DrugInt_fullsample_forJASP.txt", sep="")
+  
+  MMNtab <- read.delim(datfname)
+  
+  
+  CN <- subset(MMNtab, Group == 1)
+  
+  Pat <- subset(MMNtab, Group == 2)
+  
+  
+  
+  # Start variables
+  
+  
+  CN1dat <- CN$meanMMNcol_PLA
+  CN2dat <- CN$meanMMNcol_MEM
+  Pat1dat <- Pat$meanMMNcol_PLA
+  Pat2dat <- Pat$meanMMNcol_MEM
+  
+  
+  ncnt <- length(CN1dat)
+  npat <- length(Pat1dat)
+  
+  ncntscans <- ncnt*2
+  npatscans <- npat*2
+  totalscans <- ncntscans+npatscans
+  
+  x1 <- as.integer(totalscans)
+  x1[1:ncntscans] <- rep(c(1,2), each=ncnt)
+  x1[(ncntscans+1):totalscans] <- rep(c(3,4), each=npat)
+  
+  cntids <- rep(seq(1,ncnt),2)
+  patids <- rep(seq(ncnt+1,ncnt+npat),2)
+  
+  d <- data.frame(y = c(CN1dat, CN2dat, Pat1dat, Pat2dat), x = x1, ID_Order = as.factor(c(cntids, patids)))
+  
+  y_lim_min <- min(d$y)
+  y_lim_max <- max(d$y)
+  
+  
+  #Descriptive stats for calculating and connecting group means
+  
+  #First do the descriptives
+  
+  group <- c(1,2,1,2)
+  
+  score_mean_1 <- mean(CN1dat)
+  score_mean_2 <- mean(CN2dat)
+  score_mean_3 <- mean(Pat1dat)
+  score_mean_4 <- mean(Pat2dat)
+  
+  score_mean <- c(score_mean_1, score_mean_2, score_mean_3, score_mean_4)
+  
+  #cis
+  
+  # score_sem_1 <- sd(CN1dat)/sqrt(length(CN1dat))
+  # score_sem_2 <- sd(CN2dat)/sqrt(length(CN2dat))
+  # 
+  # score_sem_3 <- sd(Pat1dat)/sqrt(length(Pat1dat))
+  # score_sem_4 <- sd(Pat2dat)/sqrt(length(Pat2dat))
+  # 
+  # sem <- c(score_ci_1, score_ci_2, score_ci_3, score_ci_4)
+  # 
+  # summary_df <- data.frame(group, score_mean, sem)
+  
+  
+  #### get confidence intervals
+  score_ci_1 <- CI(CN1dat, ci = 0.95) #CN1
+  score_ci_2 <- CI(CN2dat, ci = 0.95) #CN1
+  score_ci_3 <- CI(Pat1dat, ci = 0.95) #CN1
+  score_ci_4 <- CI(Pat2dat, ci = 0.95) #CN1
+  
+  # CI's around mean
+  ci <- c((score_ci_1[1] - score_ci_1[3]), (score_ci_2[1] - score_ci_2[3]), (score_ci_3[1] - score_ci_3[3]), (score_ci_4[1] - score_ci_4[3]))
+  
+  summary_df <- data.frame(group, score_mean, ci)
+  
+  
+  
+  #First we must again define the x-coordinates of the means.
+  x_tick_means_x <- c(1.15, 1.85) #same as above
+  
+  #Start plotting
+  
+  set.seed(321)
+  
+  x1fk <- numeric(ncnt+npat)
+  
+  x1fk[1:ncntscans] <- rep(x_tick_means_x, each=ncnt)
+  x1fk[(ncntscans+1):totalscans] <- rep(x_tick_means_x, each=npat)
+  
+  xj <- jitter(x1fk, amount = .09)
+  
+  #xj <- jitter(x1fk)
+  
+  d$xj <- xj
+  
+  d$x_tick_means_x <- as.factor(x_tick_means_x)
+  
+  
+  
+  f1 <- ggplot(data = d, aes(y = y)) +
+    
+    #Add geom_() objects
+    
+    geom_point(data = d %>% filter(x =="3"), aes(x = xj), color = 'red', size = 1.5,alpha = .6) +
+    geom_point(data = d %>% filter(x =="4"), aes(x = xj), color = 'red', size = 1.5,alpha = .6) +
+    
+    geom_point(data = d %>% filter(x =="1"), aes(x = xj), color = 'blue', size = 1.5, alpha = .6) +
+    geom_point(data = d %>% filter(x =="2"), aes(x = xj), color = 'blue', size = 1.5, alpha = .6) +
+    
+    geom_line(data = d %>% filter(x =="3" | x =="4"), aes(x = xj, group = ID_Order), color = 'red', alpha = 0.2) +
+    
+    geom_line(data = d %>% filter(x =="1" | x =="2"), aes(x = xj, group = ID_Order), color = 'blue', alpha = 0.2) +
+    
+    
+    
+    scale_x_continuous(breaks=x_tick_means_x, labels=c("PLA", "MEM")) +
+    
+    
+    theme_classic()+
+    
+    ggtitle(Labnames[i]) + 
+    
+    xlab("Drug Session") +
+    
+    ylab("Mean MMN (125-175ms)") +
+    
+    
+    
+    theme(plot.title = element_text(face="bold", size = 14, hjust = 0.5, color = "black"), axis.title.y = element_text(face="bold", size = 11), axis.title.x = element_text(face="bold", size = 12, color = "black")) + 
+    
+    theme(axis.text.x = element_text(face="bold", size = 12, color = "black"), axis.text.y = element_text(face="bold", size = 11, color = "black")) +
+    
+    
+    #Turn caption off
+    
+    theme(legend.position = "right") +
+    
+    coord_cartesian(ylim=c(y_lim_min, y_lim_max)) +
+    
+    
+    #Add lines connecting the two means
+    
+    geom_line(data = summary_df[3:4,], aes(x = x_tick_means_x, y = score_mean),
+              color = 'red', size = 1.5, alpha = 1) + 
+    
+    geom_line(data = summary_df[1:2,], aes(x = x_tick_means_x, y = score_mean),
+              color = 'blue', size = 1.5, alpha = 1) +
+    
+    
+    # means with shape = 16, filled circle
+    geom_errorbar(data = d %>% filter(x=="1"), aes(x = 1, y = score_mean[1], ymin = score_mean[1]-ci[1], ymax = score_mean[1]+ci[1]),
+                  position = position_nudge(0.15),
+                  color = "blue", width = 0.10, size = 0.8, alpha = 0.8) +
+    
+    geom_point(data = d %>% filter(x=="1"), aes(x = 1, y = score_mean[1]),
+               position = position_nudge(x = 0.15), shape = 21, color = "black", fill = "blue",  size = 3, alpha = 0.8) +
+    
+    
+    geom_errorbar(data = d %>% filter(x=="3"), aes(x = 1, y = score_mean[3], ymin = score_mean[3]-ci[3], ymax = score_mean[3]+ci[3]),
+                  position = position_nudge(0.15),
+                  color = "red", width = 0.10, size = 0.8, alpha = 0.8) +
+    
+    geom_point(data = d %>% filter(x=="3"), aes(x = 1, y = score_mean[3]),
+               position = position_nudge(x = 0.15), shape = 21, color = "black", fill = "red",  size = 3, alpha = 0.8) +
+    
+    
+    geom_errorbar(data = d %>% filter(x=="2"), aes(x = 2, y = score_mean[2], ymin = score_mean[2]-ci[2], ymax = score_mean[2]+ci[2]),
+                  position = position_nudge(-0.15),
+                  color = "blue", width = 0.10, size = 0.8, alpha = 0.8) +
+    
+    geom_point(data = d %>% filter(x=="2"), aes(x = 2, y = score_mean[2]),
+               position = position_nudge(x = -0.15), shape = 21, color = "black", fill = "blue",  size = 3, alpha = 0.8) +
+    
+    
+    geom_errorbar(data = d %>% filter(x=="4"), aes(x = 2, y = score_mean[4], ymin = score_mean[4]-ci[4], ymax = score_mean[4]+ci[4]),
+                  position = position_nudge(-0.15),
+                  color = "red", width = 0.10, size = 0.8, alpha = 0.8) +
+    
+    geom_point(data = d %>% filter(x=="4"), aes(x = 2, y = score_mean[4]),
+               position = position_nudge(x = -0.15), shape = 21, color = "black", fill = "red",  size = 3, alpha = 0.8)
+  
+  f1
+  
+  figfname<-paste(FigOutDir, '/LFP_MMN_ConPatDrugInt_wfig_', ROInames[i], '.tiff', sep="")
+  ggsave(figfname, width = w, height = h)
+  
+  
+}
+
+#Repeat RIFG (rep6) but with ylims fixed
+
+#Turn on for RIFG only
+
+y_lim_min <- -0.3
+y_lim_max <- 0.5
+
+i <- 1
+
+datfname <- paste("adv_ssst_newmaxf_fixICA_wfids_nodipcor_nop10p19_LFP_", ROInames[i], "_MMNmean_ConsandPats_DrugInt_fullsample_forJASP.txt", sep="")
+
+MMNtab <- read.delim(datfname)
+
+
+CN <- subset(MMNtab, Group == 1)
+
+Pat <- subset(MMNtab, Group == 2)
+
+
+
+# Start variables
+
+
+CN1dat <- CN$meanMMNcol_PLA
+CN2dat <- CN$meanMMNcol_MEM
+Pat1dat <- Pat$meanMMNcol_PLA
+Pat2dat <- Pat$meanMMNcol_MEM
+
+
+ncnt <- length(CN1dat)
+npat <- length(Pat1dat)
+
+ncntscans <- ncnt*2
+npatscans <- npat*2
+totalscans <- ncntscans+npatscans
+
+x1 <- as.integer(totalscans)
+x1[1:ncntscans] <- rep(c(1,2), each=ncnt)
+x1[(ncntscans+1):totalscans] <- rep(c(3,4), each=npat)
+
+cntids <- rep(seq(1,ncnt),2)
+patids <- rep(seq(ncnt+1,ncnt+npat),2)
+
+d <- data.frame(y = c(CN1dat, CN2dat, Pat1dat, Pat2dat), x = x1, ID_Order = as.factor(c(cntids, patids)))
+
+#y_lim_min <- min(d$y)
+#y_lim_max <- max(d$y)
+
+
+#Descriptive stats for calculating and connecting group means
+
+#First do the descriptives
+
+group <- c(1,2,1,2)
+
+score_mean_1 <- mean(CN1dat)
+score_mean_2 <- mean(CN2dat)
+score_mean_3 <- mean(Pat1dat)
+score_mean_4 <- mean(Pat2dat)
+
+score_mean <- c(score_mean_1, score_mean_2, score_mean_3, score_mean_4)
+
+#cis
+
+# score_sem_1 <- sd(CN1dat)/sqrt(length(CN1dat))
+# score_sem_2 <- sd(CN2dat)/sqrt(length(CN2dat))
+# 
+# score_sem_3 <- sd(Pat1dat)/sqrt(length(Pat1dat))
+# score_sem_4 <- sd(Pat2dat)/sqrt(length(Pat2dat))
+# 
+# sem <- c(score_ci_1, score_ci_2, score_ci_3, score_ci_4)
+# 
+# summary_df <- data.frame(group, score_mean, sem)
+
+
+#### get confidence intervals
+score_ci_1 <- CI(CN1dat, ci = 0.95) #CN1
+score_ci_2 <- CI(CN2dat, ci = 0.95) #CN1
+score_ci_3 <- CI(Pat1dat, ci = 0.95) #CN1
+score_ci_4 <- CI(Pat2dat, ci = 0.95) #CN1
+
+# CI's around mean
+ci <- c((score_ci_1[1] - score_ci_1[3]), (score_ci_2[1] - score_ci_2[3]), (score_ci_3[1] - score_ci_3[3]), (score_ci_4[1] - score_ci_4[3]))
+
+summary_df <- data.frame(group, score_mean, ci)
+
+
+
+#First we must again define the x-coordinates of the means.
+x_tick_means_x <- c(1.15, 1.85) #same as above
+
+#Start plotting
+
+set.seed(321)
+
+x1fk <- numeric(ncnt+npat)
+
+x1fk[1:ncntscans] <- rep(x_tick_means_x, each=ncnt)
+x1fk[(ncntscans+1):totalscans] <- rep(x_tick_means_x, each=npat)
+
+xj <- jitter(x1fk, amount = .09)
+
+#xj <- jitter(x1fk)
+
+d$xj <- xj
+
+d$x_tick_means_x <- as.factor(x_tick_means_x)
+
+
+
+f1 <- ggplot(data = d, aes(y = y)) +
+  
+  #Add geom_() objects
+  
+  geom_point(data = d %>% filter(x =="3"), aes(x = xj), color = 'red', size = 1.5,alpha = .6) +
+  geom_point(data = d %>% filter(x =="4"), aes(x = xj), color = 'red', size = 1.5,alpha = .6) +
+  
+  geom_point(data = d %>% filter(x =="1"), aes(x = xj), color = 'blue', size = 1.5, alpha = .6) +
+  geom_point(data = d %>% filter(x =="2"), aes(x = xj), color = 'blue', size = 1.5, alpha = .6) +
+  
+  geom_line(data = d %>% filter(x =="3" | x =="4"), aes(x = xj, group = ID_Order), color = 'red', alpha = 0.2) +
+  
+  geom_line(data = d %>% filter(x =="1" | x =="2"), aes(x = xj, group = ID_Order), color = 'blue', alpha = 0.2) +
+  
+  
+  
+  scale_x_continuous(breaks=x_tick_means_x, labels=c("PLA", "MEM")) +
+  
+
+  
+  theme_classic()+
+  
+  ggtitle(Labnames[i]) + 
+  
+  xlab("Drug Session") +
+  
+  ylab("Mean MMN (125-175ms)") +
+  
+  
+  
+  theme(plot.title = element_text(face="bold", size = 14, hjust = 0.5, color = "black"), axis.title.y = element_text(face="bold", size = 11), axis.title.x = element_text(face="bold", size = 12, color = "black")) + 
+  
+  theme(axis.text.x = element_text(face="bold", size = 12, color = "black"), axis.text.y = element_text(face="bold", size = 11, color = "black")) +
+  
+  
+  #Turn caption off
+  
+  theme(legend.position = "right") +
+  
+  
+ 
+  
+  
+  #Add lines connecting the two means
+  
+  geom_line(data = summary_df[3:4,], aes(x = x_tick_means_x, y = score_mean),
+            color = 'red', size = 1.5, alpha = 1) + 
+  
+  geom_line(data = summary_df[1:2,], aes(x = x_tick_means_x, y = score_mean),
+            color = 'blue', size = 1.5, alpha = 1) +
+  
+  
+  # means with shape = 16, filled circle
+  geom_errorbar(data = d %>% filter(x=="1"), aes(x = 1, y = score_mean[1], ymin = score_mean[1]-ci[1], ymax = score_mean[1]+ci[1]),
+                position = position_nudge(0.15),
+                color = "blue", width = 0.10, size = 0.8, alpha = 0.8) +
+  
+  geom_point(data = d %>% filter(x=="1"), aes(x = 1, y = score_mean[1]),
+             position = position_nudge(x = 0.15), shape = 21, color = "black", fill = "blue",  size = 3, alpha = 0.8) +
+  
+  
+  geom_errorbar(data = d %>% filter(x=="3"), aes(x = 1, y = score_mean[3], ymin = score_mean[3]-ci[3], ymax = score_mean[3]+ci[3]),
+                position = position_nudge(0.15),
+                color = "red", width = 0.10, size = 0.8, alpha = 0.8) +
+  
+  geom_point(data = d %>% filter(x=="3"), aes(x = 1, y = score_mean[3]),
+             position = position_nudge(x = 0.15), shape = 21, color = "black", fill = "red",  size = 3, alpha = 0.8) +
+  
+  
+  geom_errorbar(data = d %>% filter(x=="2"), aes(x = 2, y = score_mean[2], ymin = score_mean[2]-ci[2], ymax = score_mean[2]+ci[2]),
+                position = position_nudge(-0.15),
+                color = "blue", width = 0.10, size = 0.8, alpha = 0.8) +
+  
+  geom_point(data = d %>% filter(x=="2"), aes(x = 2, y = score_mean[2]),
+             position = position_nudge(x = -0.15), shape = 21, color = "black", fill = "blue",  size = 3, alpha = 0.8) +
+  
+  
+  geom_errorbar(data = d %>% filter(x=="4"), aes(x = 2, y = score_mean[4], ymin = score_mean[4]-ci[4], ymax = score_mean[4]+ci[4]),
+                position = position_nudge(-0.15),
+                color = "red", width = 0.10, size = 0.8, alpha = 0.8) +
+  
+  geom_point(data = d %>% filter(x=="4"), aes(x = 2, y = score_mean[4]),
+             position = position_nudge(x = -0.15), shape = 21, color = "black", fill = "red",  size = 3, alpha = 0.8) +
+    
+  scale_y_continuous(limits=c(y_lim_min, y_lim_max))  
+
+f1
+
+figfname<-paste(FigOutDir, '/LFP_MMN_ConPatDrugInt_wfig_', ROInames[i], '_fixylim', '.tiff', sep="")
+ggsave(figfname, width = w, height = h)
