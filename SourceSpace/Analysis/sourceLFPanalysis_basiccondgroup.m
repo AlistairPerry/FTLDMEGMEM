@@ -45,6 +45,11 @@ sessions = {'s1','s1','s1','s1','s1','s1','s1','s1','s1','s1','s1','s1','s2','s2
 subjs_new = {'c2';'c3';'c7';'c8';'c9';'c11';'c13';'c14';'c23';'c24';'c1';'c4';'c5';'c6';'c10';'c12';'c15';'c16';'c21';'c22'; 'p1';'p6';'p7';'p9';'p12';'p13';'p14';'p17';'p18';'p21';'p24';'p2';'p4';'p5';'p8';'p11';'p16';'p22';'p23';'p25'};
 
 
+%270622: Wait - remove C22 due to error with drug/placebo info
+
+subjs_new = {'c2';'c3';'c7';'c8';'c9';'c11';'c13';'c14';'c23';'c24';'c1';'c4';'c5';'c6';'c10';'c12';'c15';'c16';'c21';'p1';'p6';'p7';'p9';'p12';'p13';'p14';'p17';'p18';'p21';'p24';'p2';'p4';'p5';'p8';'p11';'p16';'p22';'p23';'p25'};
+
+
 %Now find their sessions
 
 for i = 1:length(subjs_new)
@@ -111,6 +116,7 @@ std3trl = 4;
 stdtrl = 7;
 
 
+%Indicate if data has been ds
 ds = 1;
 
 
@@ -145,7 +151,8 @@ FigOutDir = '/imaging/rowe/users/ap09/Projects/FTD-MEG-MEM/newmaxfilter/analysis
 mkdir(FigOutDir);
 
 
-figoutprefix = 'commconpatplac_remo_wbothsess';
+%figoutprefix = 'commconpatplac_remo_wbothsess';
+figoutprefix = 'commconpatplac_remo_wbothsess_noc22'; %Change due to subj error
 
 
 %Plus disease group information
@@ -157,80 +164,10 @@ DiagData = readcell('/imaging/rowe/users/ap09/Projects/FTD-MEG-MEM/ERP/analysis/
 
 
 %% Read in placebo and drug data - controls
-
-
-%Load data and setup
-
-% fid = fopen(LFPplaclistcon);
-% Data = textscan(fid, '%s', 'delimiter', '\n', 'whitespace', '');
-
-nfilesc=length(subjs_con);
-
-
-%Create subject cells
-
-avgdev_all=cell(nfilesc,1);
-
-avgstd_all=cell(nfilesc,1);
-
-
-% Read in patient data
-
-
-% fid = fopen(LFPplaclistpat);
-% Data_Pat = textscan(fid, '%s', 'delimiter', '\n', 'whitespace', '');
-
-nfilesp=length(subjs_pat);
-
-
-
-%Create subject cells
-
-avgdev_all_pat=cell(nfilesp,1);
-
-avgstd_all_pat=cell(nfilesp,1);
-
-
-
-%% Setup design matrix(s)
-
-for s = 1:nfilesc
-    
-S(s,1) = s;
-    
-end
-
-F1 = repmat([1;1], [nfilesc 1]);
-
-F2 = cat(1, repmat(1, [nfilesc 1]), repmat(2, [nfilesc 1]));
-
-
-%Now patients
-
-for s = 1:nfilesp
-    
-        Sp(s,1) = s+nfilesc;
-    
-end
-
-F1p = repmat([2;2], [nfilesp 1]);
-F2p = cat(1, repmat(1, [nfilesp 1]), repmat(2, [nfilesp 1]));
-
-
-%Combine design matrix(s)
-
-Sall = cat(1, S, S, Sp, Sp);
-
-F1all = cat(1, F1, F1p);
-F2all = cat(1, F2, F2p);
-
-
-
-%% Loop through subjects/files for controls
+%Loop through subjects/files for controls
 %Placebo
 
-
-for subj = 1:nfilesc
+for subj = 1:length(subjs_con)
     
     
     D = spm_eeg_load([preprocdir '/' subjs_con{subj} '/' LFPprefix '_' preprocsteps '_' subjs_con{subj} '_' sessions_con{subj} '_' LFPpostfix]);
@@ -325,7 +262,7 @@ grandavgstd   = ft_timelockgrandaverage(cfg, avgstd_all{:});
 submatcount_pat = 0;
 
 
-for pat = 1:nfilesp
+for pat = 1:length(subjs_pat)
     
     
     filen = [preprocdir '/' subjs_pat{pat} '/' LFPprefix '_' preprocsteps '_' subjs_pat{pat} '_' sessions_pat{pat} '_' LFPpostfix];
@@ -437,6 +374,45 @@ cfg=[];
 grandavgdev_pat  = ft_timelockgrandaverage(cfg, avgdev_all_pat{:});
 
 grandavgstd_pat  = ft_timelockgrandaverage(cfg, avgstd_all_pat{:});
+
+
+%% Setup design matrix(s)
+
+
+nfilesc = length(avgstd_all);
+
+nfilesp = length(avgstd_all_pat);
+
+
+for s = 1:nfilesc
+    
+S(s,1) = s;
+    
+end
+
+F1 = repmat([1;1], [nfilesc 1]);
+
+F2 = cat(1, repmat(1, [nfilesc 1]), repmat(2, [nfilesc 1]));
+
+
+%Now patients
+
+for s = 1:nfilesp
+    
+        Sp(s,1) = s+nfilesc;
+    
+end
+
+F1p = repmat([2;2], [nfilesp 1]);
+F2p = cat(1, repmat(1, [nfilesp 1]), repmat(2, [nfilesp 1]));
+
+
+%Combine design matrix(s)
+
+Sall = cat(1, S, S, Sp, Sp);
+
+F1all = cat(1, F1, F1p);
+F2all = cat(1, F2, F2p);
 
 
 
