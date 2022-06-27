@@ -2323,68 +2323,17 @@ for source = 1:nsources
    
     
     
-    %Adjust for b/l
-       
-    % Mean calculations
+    %Cooks distance
     
-    m1temp=squeeze(nanmean(diff_pat(:,MMNs:MMNf),2));
+    temptbl = table(ExtTable_gabaifgcor_bothsess, m1drugdifftemp);
     
-    X = cat(2, ExtTable_gabaifgcor_bothsess, m1temp);
+    lm = fitlm(temptbl,'m1drugdifftemp~ExtTable_gabaifgcor_bothsess');
     
-    
-    [b, stats] = robustfit(X, m1drugdifftemp);
-    
-    
-    MMNrall_cor_rep3_adjbl(source,1) = b(2,1);
-    
-    MMNpall_cor_rep3_adjbl(source,1) = stats.p(2,1);
+    findout = find((lm.Diagnostics.CooksDistance)>4*mean(lm.Diagnostics.CooksDistance));
+  
+    MMNpall_cor_rep3_cookd{1, source} = findout;
     
     
-    temptbl = table(ExtTable_gabaifgcor_bothsess, m1drugdifftemp, m1temp);
-    
-    lm = fitlm(temptbl,'m1drugdifftemp~ExtTable_gabaifgcor_bothsess+m1temp');
-    
-    MMNpall_normr_rep3_adjbl = lm.Coefficients.pValue(2);
-    
-    
-    %Controlling for age/sex
-    
-    temptbl = table(ExtTable_gabaifgcor_bothsess, m1drugdifftemp, ExtTable_Dems_Age, ExtTable_Dems_Sex_mat);
-    
-    
-    %Age by itself
-    
-    X = cat(2, ExtTable_gabaifgcor_bothsess, ExtTable_Dems_Age);
-    
-    [b, stats] = robustfit(X, m1drugdifftemp);
-    
-    
-    MMNrall_cor_rep3_age(source,1) = b(2,1);
-    
-    MMNpall_cor_rep3_age(source,1) = stats.p(2,1);
-    
-    
-    lm_age = fitlm(temptbl,'m1drugdifftemp~ExtTable_gabaifgcor_bothsess+ExtTable_Dems_Age');
-    
-    MMNpall_normr_rep3_age = lm_age.Coefficients.pValue(2);
-    
-    
-    
-    %Age and sex
-    
-    X = cat(2, ExtTable_gabaifgcor_bothsess, ExtTable_Dems_Age, ExtTable_Dems_Sex_mat);
-    
-    [b, stats] = robustfit(X, m1drugdifftemp);
-    
-    
-    MMNrall_cor_rep3_agesex(source,1) = b(2,1);
-    
-    MMNpall_cor_rep3_agesex(source,1) = stats.p(2,1);
-    
-    
-    lm_agesex = fitlm(temptbl,'m1drugdifftemp~ExtTable_gabaifgcor_bothsess+ExtTable_Dems_Age+ExtTable_Dems_Sex_mat');
-    
-    MMNpall_normr_rep3_agesex(source,1) = lm_agesex.Coefficients.pValue(2);
    
     
 end
@@ -2457,54 +2406,11 @@ MMNstats.r2 = MMNpall_cor_rep3_coeff_r2;
 
 MMNstats.CI = MMNpall_cor_rep3_coeff_CI;
 
+%And now save cooks d
 
+MMNstats.cookd = MMNpall_cor_rep3_cookd;
 
 save([FigOutDir '/' figoutprefix '_LFPs_' 'MRSIFGgabacorassoc_' 'meanMMN3_DrugDiff_Pats_fullsample_stats.mat'], 'MMNstats');
-
-
-%Rep3 - adjbl
-
-% [h, ~, ~, adj_p]=fdr_bh(MMNpall_cor_rep3_adjbl);
-% 
-% MMNstats = struct;
-% MMNstats.adj_p = adj_p;
-% 
-% MMNstats.praw = MMNpall_cor_rep3_adjbl;
-% MMNstats.r = MMNrall_cor_rep3_adjbl;
-% 
-% 
-% save([FigOutDir '/' figoutprefix '_LFPs_' 'MRSIFGgabacorassoc_' 'meanMMN3_DrugDiff_Pats_fullsample_stats_adjbl.mat'], 'MMNstats');
-
-
-%Rep3 - age
-
-% [h, ~, ~, adj_p]=fdr_bh(MMNpall_cor_rep3_age);
-% 
-% MMNstats = struct;
-% MMNstats.adj_p = adj_p;
-% 
-% MMNstats.praw = MMNpall_cor_rep3_age;
-% MMNstats.r = MMNrall_cor_rep3_age;
-% MMNstats.lmp = MMNpall_normr_rep3_age;
-% 
-% 
-% save([FigOutDir '/' figoutprefix '_LFPs_' 'MRSIFGgabacorassoc_' 'meanMMN3_DrugDiff_Pats_fullsample_stats_adjage.mat'], 'MMNstats');
-
-
-
-%Rep3 - adjagesex
-
-% [h, ~, ~, adj_p]=fdr_bh(MMNpall_cor_rep3_agesex);
-% 
-% MMNstats = struct;
-% MMNstats.adj_p = adj_p;
-% 
-% MMNstats.praw = MMNpall_cor_rep3_agesex;
-% MMNstats.r = MMNrall_cor_rep3_agesex;
-% 
-% MMNstats.lmp = MMNpall_normr_rep3_agesex;
-% 
-% save([FigOutDir '/' figoutprefix '_LFPs_' 'MRSIFGgabacorassoc_' 'meanMMN3_DrugDiff_Pats_fullsample_stats_adjagesex.mat'], 'MMNstats');
 
 
 

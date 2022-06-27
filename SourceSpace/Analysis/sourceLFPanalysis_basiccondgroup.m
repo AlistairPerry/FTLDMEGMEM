@@ -348,7 +348,7 @@ for pat = 1:nfilesp
         
         %And also find diag info
         
-        PatMatch=strcmp(DiagData(:,1), psubj);
+        PatMatch=strcmpi(DiagData(:,1), psubj);
         
         extdiaginfo(submatcount_pat,1) = DiagData(PatMatch==1,2);
         
@@ -757,43 +757,15 @@ for source=1:nsources
     ax.XTickLabel = {'Std' 'Dev'};
     
     
-    %Write out mean data for calculating in JASP RM ANOVA
-    
-    
-%     m1_std = nanmean(tempstdcol(:,MMNs:MMNf),2);
-%     
-%     m1_dev = nanmean(tempdevcol(:,MMNs:MMNf),2);
-%     
-%     m1_std_pat = nanmean(tempstdcol_pat(:,MMNs:MMNf),2);
-%     
-%     m1_dev_pat = nanmean(tempdevcol_pat(:,MMNs:MMNf),2);
-%     
-%     
-%     
-%     meanMMNcol_lw = cat(2, m1_std, m1_dev);
-%     
-%     meanMMNcol_lw_pat = cat(2, m1_std_pat, m1_dev_pat);
-%     
-%     meanMMNcol_lw_all = cat(1, meanMMNcol_lw, meanMMNcol_lw_pat);
-% 
-%     meanMMNcol_lw_grp = cat(1, repmat(1, [nfilesc 1]), repmat(2, [nfilesp 1]));
-%     
-%     MMNtable_lw = table(meanMMNcol_lw_all(:,1), meanMMNcol_lw_all(:,2), meanMMNcol_lw_grp);
-%     
-%     
-%     MMNtable_lw.Properties.VariableNames = {'mean_STD', 'mean_DEV', 'Group'};
-% 
-%     writetable(MMNtable_lw, [FigOutDir '/' figoutprefix '_' 'LFP_' grandavgdev.label{source} '_STDDEVmean' '_' 'ConsandPats' '_GrpCondInt_' 'fullsample_forJASP.txt'], 'Delimiter','tab')
-%     
-    
-
     %Write out mean data for ttest and calculating in JASP
-    
     
     conmmndiff = nanmean(tempdiffcol(:,MMNs:MMNf),2);
     
     patmmndiff = nanmean(tempdiffcol_pat(:,MMNs:MMNf),2);
     
+        
+    
+    %Now t-test
     
     [~,p,~,stats] = ttest2(conmmndiff,patmmndiff,'tail','both');
     
@@ -810,6 +782,7 @@ end
 
 
 %Output
+
 
 %Save ttest
 
@@ -834,23 +807,9 @@ meanMMNdiffcol_subgrp = cat(1, repmat(3, [nfilesc 1]), cell2mat(extdiaginfo));
 MMNdifftable = table(meanMMNdiffcol_all(:,1), meanMMNdiffcol_all(:,2), meanMMNdiffcol_all(:,3), meanMMNdiffcol_all(:,4), meanMMNdiffcol_all(:,5), meanMMNdiffcol_all(:,6), meanMMNdiffcol_grp, meanMMNdiffcol_subgrp);
 
 MMNdifftable.Properties.VariableNames = {['meanMMNcol_1'], ['meanMMNcol_2'], ['meanMMNcol_3'], ['meanMMNcol_4'], ['meanMMNcol_5'], ['meanMMNcol_6'], 'Group', 'PatSubgrp'};
-%MMNdifftable.Properties.VariableNames = {join(['meanMMNcol_' grandavgdev.label(1)]), join(['meanMMNcol_' grandavgdev.label(1)]), join(['meanMMNcol_' grandavgdev.label(1)]), join(['meanMMNcol_' grandavgdev.label(1)]), join(['meanMMNcol_' grandavgdev.label(1)]), join(['meanMMNcol_' grandavgdev.label(1)]), 'Group'};
 
 writetable(MMNdifftable, [FigOutDir '/' figoutprefix '_' 'LFPs_'  'MMNdiffmean_' 'ConsandPats_' 'forJASP_' 'fullsample.txt'], 'Delimiter','tab')
 
-
-
-%Mean data for JASP
-
-% meanMMNdiffcol_grp = cat(1, repmat(1, [nfilesc 1]), repmat(2, [nfilesp 1])); 
-% 
-% 
-% MMNdifftable = table(meanMMNdiffcol_all(:,1), meanMMNdiffcol_all(:,2), meanMMNdiffcol_all(:,3), meanMMNdiffcol_all(:,4), meanMMNdiffcol_all(:,5), meanMMNdiffcol_all(:,6), meanMMNdiffcol_grp);
-% 
-% MMNdifftable.Properties.VariableNames = {['meanMMNcol_1'], ['meanMMNcol_2'], ['meanMMNcol_3'], ['meanMMNcol_4'], ['meanMMNcol_5'], ['meanMMNcol_6'], 'Group'};
-% MMNdifftable.Properties.VariableNames = {join(['meanMMNcol_' grandavgdev.label(1)]), join(['meanMMNcol_' grandavgdev.label(1)]), join(['meanMMNcol_' grandavgdev.label(1)]), join(['meanMMNcol_' grandavgdev.label(1)]), join(['meanMMNcol_' grandavgdev.label(1)]), join(['meanMMNcol_' grandavgdev.label(1)]), 'Group'};
-% 
-% writetable(MMNdifftable, [FigOutDir '/' figoutprefix '_' 'LFPs_'  'MMNdiffmean_' 'ConsandPats_' 'forJASP_' 'fullsample.txt'], 'Delimiter','tab')
 
 
 %Figures
@@ -1072,67 +1031,9 @@ for source=1:nsources
 
     
     
-    %% Calculate means for MMN ANOVA
+    %% Calculate means for MMN 
 
-    
-    %Now ANOVA
-    
-    %Need to concatenate controls and patients
-    
-    meanMMNcol = mean(tempdatacol(:,MMNs:MMNf),2);
-    
-    meanMMNcol_pat = mean(tempdatacol_pat(:,MMNs:MMNf),2);
-    
-    meanMMNcol_all = cat(1, meanMMNcol, meanMMNcol_pat);
-    
-    meanMMNcol_all_allnodes = cat(2, meanMMNcol_all_allnodes, meanMMNcol_all);
-    
-    
-    %meanMMNcolall(1:nsubjs*4, source) = meanMMNcol;
-    
-%     X = cat(2, meanMMNcol_all, F1all, F2all, Sall);
-%     
-%     
-%     [SSQs, DFs, MSQs, Fs, Ps] = mixed_between_within_anova(X);
-%     
-%     
-%     pgrp = Ps(1);
-%     pcond = Ps(3);
-%     pint = Ps(4);
-%     
-%     MMNpall(source,1)=pgrp;
-%     MMNpall(source,2)=pcond;
-%     MMNpall(source,3)=pint;
-    
-    
-    % Mean plots
-    
-    
-%     figure6 = figure(6), subplot(2,3,source)
-%     
-%     hold on
-%     
-%     figure(6), plot([1 2], [mean(meanMMNcol(1:nfilesc)) mean(meanMMNcol(nfilesc+1:nfilesc+nfilesc))], '-b','LineWidth',1,'Marker','o','MarkerFaceColor','b','MarkerEdgeColor','k','MarkerSize',6)
-%     
-%     figure(6), plot([1 2], [mean(meanMMNcol_pat(1:nfilesp)) mean(meanMMNcol_pat(nfilesp+1:nfilesp+nfilesp))], '-r','LineWidth',1,'Marker','o','MarkerFaceColor','r','MarkerEdgeColor','k','MarkerSize',6)
-%     
-%     
-%     title(['rep3' '' data_std.label{source, 1}])
-%     
-%     
-%     %xlabel('Condition', 'FontSize', 10, 'FontWeight', 'Bold', 'Color', 'black')
-%     
-%     ax=gca;
-%     
-%     ax.YColor = 'black';
-%     ax.XColor = 'black';
-%     ax.FontWeight = 'bold';
-%     ax.FontSize = 10;
-%     
-%     ax.XLim = [0.5 2.5];
-%     ax.XTick = [1 2];
-%     ax.XTickLabel = {'Std3' 'Dev'};
-    
+   
     
     %Write out mean data for ttest and calculating in JASP
     
@@ -1142,11 +1043,21 @@ for source=1:nsources
     patmmndiff = nanmean(tempdiffcol_pat(:,MMNs:MMNf),2);
     
     
-    [~,p,~,stats] = ttest2(conmmndiff,patmmndiff,'tail','both');
     
-    MMNpall(source,1) = p;
-    MMNtall(source,1) = stats.tstat;
+    %First, calculate test assumptions
     
+    %Levenes
+    
+    grp(1:nfilesc,1) = 1;
+    
+    grp(nfilesc+1:nfilesc+nfilesp,1) = 2;
+    
+    
+    [p] = vartestn(cat(1, conmmndiff, patmmndiff), grp, 'testtype', 'LeveneAbsolute', 'display', 'off');
+        
+    P_all(source,1) = p;
+    
+  
     
     %Collate together - can do all source regions at once - no problem.
     
@@ -1157,6 +1068,16 @@ end
 
 
 %Output
+
+%Save ttest assumptions
+
+MMNlevtests = struct;
+
+MMNlevtests.p = P_all;
+
+save([FigOutDir '/' figoutprefix '_' 'LFPs_'  'MMN3diffmean_' 'ConsandPats_levtests.mat'], 'MMNlevtests');
+
+
 
 %Save ttest
 
@@ -1184,120 +1105,6 @@ MMNdifftable.Properties.VariableNames = {['meanMMNcol_1'], ['meanMMNcol_2'], ['m
 %MMNdifftable.Properties.VariableNames = {join(['meanMMNcol_' grandavgdev.label(1)]), join(['meanMMNcol_' grandavgdev.label(1)]), join(['meanMMNcol_' grandavgdev.label(1)]), join(['meanMMNcol_' grandavgdev.label(1)]), join(['meanMMNcol_' grandavgdev.label(1)]), join(['meanMMNcol_' grandavgdev.label(1)]), 'Group'};
 
 writetable(MMNdifftable, [FigOutDir '/' figoutprefix '_' 'LFPs_'  'MMN3diffmean_' 'ConsandPats_' 'forJASP_' 'fullsample.txt'], 'Delimiter','tab')
-
-
-
-%Figures
-
-%saveas(figure5, [FigOutDir '/' figoutprefix '_LFPdiffcalcs_MMN3_fullsample_plac_wsem_ConPat.tif']);
-
-%saveas(figure6, [FigOutDir '/' figoutprefix '_LFPmmn3_fullsample_condgroup_mean_int.tif']);
-
-
-%Save output table
-
-% summrestable = table(MMNpall(:,1), MMNpall(:,2), MMNpall(:,3));
-% summrestable.Properties.VariableNames = {'Group' 'Cond' 'Int'};
-% 
-% writetable(summrestable, [FigOutDir '/' figoutprefix 'MMN3_restable_2wayANOVA_CondGrps_wInt.txt']);
-
-
-%And full data table
-
-%Can push out into rainclouds for plotting in R :)
-
-% MMNtable = table(meanMMNcol_all_allnodes(:,1), meanMMNcol_all_allnodes(:,2), meanMMNcol_all_allnodes(:,3), meanMMNcol_all_allnodes(:,4), meanMMNcol_all_allnodes(:,5), meanMMNcol_all_allnodes(:,6), F1all, F2all, Sall);
-% 
-% MMNtable.Properties.VariableNames = {'meanMMNcol_LIFG', 'meanMMNcol_LSTG', 'meanMMNcol_LAUD', 'meanMMNcol_RIFG', 'meanMMNcol_RSTG', 'meanMMNcol_RAUD', 'Group', 'Trial', 'ID'};
-% 
-% writetable(MMNtable, [FigOutDir '/' figoutprefix '_' 'LFP_'  'MMN3mean' '_' 'ConsandPats' '_' 'fullsample.txt'], 'Delimiter','tab')
-
-
-
-
-
-%% RFT
-%%=========================================================================
-
-% figcount = 10;
-% 
-% %Setup DM
-% 
-% %First, set up design matrix for RFT
-% 
-% DM = zeros(nfilesc+nfilesp,2);
-% 
-% DM(1:nfilesc,1) = repmat(1, [nfilesc 1]);
-% 
-% DM(nfilesc+1:end,2) = repmat(1, [nfilesp 1]);
-% 
-% 
-% c = [1; -1];
-% 
-% 
-% %Just do rep3
-% 
-% 
-% for source = 4:nsources
-%    
-%     
-%     %Start with controls
-%     
-%     
-%     for isub = 1:nfilesc
-%         
-%         % Collate all individual data for variance calcs
-%         
-%         tempdevcol(isub,:) = avgdev_all{isub,1}.avg(source,:);
-%         
-%         tempstdcol(isub,:) = avgstd3_all{isub,1}.avg(source,:);
-%         
-%         tempdiffcol(isub,:) = tempstdcol(isub,:)-tempdevcol(isub,:);
-%         
-%     end
-%     
-%     
-%     %Patients
-%     
-%     for isub = 1:nfilesp
-%         
-%         % Collate all individual data for variance calcs
-%         
-%         tempdevcol_pat(isub,:) = avgdev_all_pat{isub,1}.avg(source,:);
-%         
-%         tempstdcol_pat(isub,:) = avgstd3_all_pat{isub,1}.avg(source,:);
-%         
-%         tempdiffcol_pat(isub,:) = tempstdcol_pat(isub,:)-tempdevcol_pat(isub,:);
-%         
-%     end
-%         
-%     
-%     
-%     figcount = figcount + 1;
-%         
-%         
-%     mmndiffall = cat(1, tempdiffcol, tempdiffcol_pat);
-%     
-%     
-%     y = mmndiffall;
-%     
-%     
-%     [stat,out] = RFT_GLM_contrast(DM,y,c,'t',1,1);
-%     
-%     
-%     
-%     %Save figure
-%     
-%     saveas(figure(figcount), [FigOutDir '/' figoutprefix '_' 'LFP_' 'rep3_' 'ControlsandPats_' grandavgdev.label{source} '_Diff_fullsample_RFT.tif']);
-%     
-%     
-%     %Saveoutput
-%     
-%     save([FigOutDir '/' figoutprefix '_' 'LFP_' 'rep3_' 'ControlsandPats_' grandavgdev.label{source} '_Diff_fullsample_RFT.mat'], 'stat');
-%     
-%     
-% end
-    
 
 
 
