@@ -1034,10 +1034,20 @@ for source=1:nsources
     P_all(source,1) = p;
     
   
+    %Now t-test
+    
+    [~,p,~,stats] = ttest2(conmmndiff,patmmndiff,'tail','both');
+    
+    MMNpall(source,1) = p;
+    MMNtall(source,1) = stats.tstat;
+    
+    
     
     %Collate together - can do all source regions at once - no problem.
     
     meanMMNdiffcol_all(:, source) = cat(1, conmmndiff, patmmndiff);
+
+    
 
 
 end

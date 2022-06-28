@@ -21,7 +21,7 @@ ft_defaults()
 
 FigOutDir = '/imaging/rowe/users/ap09/Projects/FTD-MEG-MEM/newmaxfilter/analysis/SourceSpace/LFPs_icafixes/LFPs_COH_wrad_allMEGch_wfids/C_Plots';
 
-figoutprefix = 'adv_ssst_newmaxf_fixICA_wfids_nodipcor_nop10p19';
+figoutprefix = 'adv_ssst_newmaxf_fixICA_wfids_noc22_nodipcor_nop10p19';
 
 
 %Other setup
@@ -58,7 +58,9 @@ LFPpostfix = 'rov123_sss.mat'; %for now
 
 Con_P = '/imaging/rowe/users/ap09/Projects/FTD-MEG-MEM/ERP/analysis/LFPs/A_Scripts/Con_P.txt';
 
-Con_D = '/imaging/rowe/users/ap09/Projects/FTD-MEG-MEM/ERP/analysis/LFPs/A_Scripts/Con_D.txt';
+%2806 - remove error subj
+%Con_D = '/imaging/rowe/users/ap09/Projects/FTD-MEG-MEM/ERP/analysis/LFPs/A_Scripts/Con_D.txt';
+Con_D = '/imaging/rowe/users/ap09/Projects/FTD-MEG-MEM/ERP/analysis/LFPs/A_Scripts/Con_D_noc22.txt';
 
 Pat_P = '/imaging/rowe/users/ap09/Projects/FTD-MEG-MEM/ERP/analysis/LFPs/A_Scripts/Pat_P.txt';
 
@@ -872,17 +874,17 @@ for source = 4:nsources
     
     %Start figure
     
-    figure(figcount);set(gcf, 'Units','normalized', 'Position', [0 0 0.25 0.25]);
-    plot(m1,'--','LineWidth',2,'Color',[0/255 0/255 255/255]); hold on
-    plot(m1_d,':','LineWidth',2,'Color',[0/255 0/255 255/255]);
-    plot(m1_pat,'--','LineWidth',2,'Color',[255/255 0/255 0/255]);
-    plot(m1_d_pat,':','LineWidth',2,'Color',[255/255 0/255 0/255]); %legendflex({'rep3 CON','dev CON','rep3 FTLD','dev FTLD'},'fontsize',14)
+    figure(figcount);set(gcf, 'Units','normalized', 'Position', [0 0 0.33 0.33]);
+    plot(m1,'--','LineWidth',2.5,'Color',[0/255 0/255 255/255]); hold on
+    plot(m1_d,':','LineWidth',2.5,'Color',[0/255 0/255 255/255]);
+    plot(m1_pat,'--','LineWidth',2.5,'Color',[255/255 0/255 0/255]);
+    plot(m1_d_pat,':','LineWidth',2.5,'Color',[255/255 0/255 0/255]); %legendflex({'rep3 CON','dev CON','rep3 FTLD','dev FTLD'},'fontsize',14)
     boundedline([1:size(m1,2)],m1,s1,'cmap',[0/255 0/255 255/255], 'transparency', 0.1, 'orientation', 'vert', 'alpha');
     boundedline([1:size(m1,2)],m1_d,s1_d,'cmap',[0/255 0/255 255/255], 'transparency', 0.1, 'orientation', 'vert', 'alpha');
     boundedline([1:size(m1_pat,2)],m1_pat,s1_pat,'cmap',[255/255 0/255 0/255], 'transparency', 0.1, 'orientation', 'vert', 'alpha');
     boundedline([1:size(m1_pat,2)],m1_d_pat,s1_d_pat,'cmap',[255/255 0/255 0/255], 'transparency', 0.1, 'orientation', 'vert', 'alpha');
-    %plot(p,'-o','LineWidth',2,'MarkerEdgeColor',[0.6 0.6 0.6],'MarkerFaceColor',[0.6 0.6 0.6],'MarkerSize',8)
-    set(gca, 'XTick',xticks, 'XTickLabel',xlabels,'Fontsize',12, 'FontWeight', 'bold', 'FontName', 'Arial'); xlabel('Time (ms)', 'FontWeight', 'bold', 'FontSize', 12, 'FontName', 'Arial'); ylabel({'Amplitude (a.u)'}, 'FontWeight', 'bold', 'FontSize', 13, 'FontName', 'Arial');
+    %plot(p,'-o','LineWidth',2.5,'MarkerEdgeColor',[0.6 0.6 0.6],'MarkerFaceColor',[0.6 0.6 0.6],'MarkerSize',8)
+    set(gca, 'XTick',xticks, 'XTickLabel',xlabels,'Fontsize',14, 'FontWeight', 'bold', 'FontName', 'Arial'); xlabel('Time (ms)', 'FontWeight', 'bold', 'FontSize', 14, 'FontName', 'Arial'); ylabel({'Amplitude (a.u)'}, 'FontWeight', 'bold', 'FontSize', 16, 'FontName', 'Arial');
     %title([varnm{i} ' mean in controls']); xlim([0 251]); %ylim([0 1]);%axis square
     
     box off
@@ -935,17 +937,17 @@ for source = 4:nsources
     
     %Start figure
     
-    figure(figcount);set(gcf, 'Units','normalized', 'Position', [0 0 0.25 0.25]);
-    plot(m1,'--','LineWidth',2,'Color',[0/255 0/255 255/255]); hold on
-    plot(m1_d,':','LineWidth',2,'Color',[0/255 0/255 255/255]);
-    plot(m1_pat,'--','LineWidth',2,'Color',[255/255 0/255 0/255]);
-    plot(m1_d_pat,':','LineWidth',2,'Color',[255/255 0/255 0/255]); %legendflex({'rep3 CON','dev CON','rep3 FTLD','dev FTLD'},'fontsize',14)
+    figure(figcount);set(gcf, 'Units','normalized', 'Position', [0 0 0.33 0.33]);
+    plot(m1,'--','LineWidth',2.5,'Color',[0/255 0/255 255/255]); hold on
+    plot(m1_d,':','LineWidth',2.5,'Color',[0/255 0/255 255/255]);
+    plot(m1_pat,'--','LineWidth',2.5,'Color',[255/255 0/255 0/255]);
+    plot(m1_d_pat,':','LineWidth',2.5,'Color',[255/255 0/255 0/255]); %legendflex({'rep3 CON','dev CON','rep3 FTLD','dev FTLD'},'fontsize',14)
     boundedline([1:size(m1,2)],m1,s1,'cmap',[0/255 0/255 255/255], 'transparency', 0.1, 'orientation', 'vert', 'alpha');
     boundedline([1:size(m1,2)],m1_d,s1_d,'cmap',[0/255 0/255 255/255], 'transparency', 0.1, 'orientation', 'vert', 'alpha');
     boundedline([1:size(m1_pat,2)],m1_pat,s1_pat,'cmap',[255/255 0/255 0/255], 'transparency', 0.1, 'orientation', 'vert', 'alpha');
     boundedline([1:size(m1_pat,2)],m1_d_pat,s1_d_pat,'cmap',[255/255 0/255 0/255], 'transparency', 0.1, 'orientation', 'vert', 'alpha');
-    %plot(p,'-o','LineWidth',2,'MarkerEdgeColor',[0.6 0.6 0.6],'MarkerFaceColor',[0.6 0.6 0.6],'MarkerSize',8)
-    set(gca, 'XTick',xticks, 'XTickLabel',xlabels,'Fontsize',12, 'FontWeight', 'bold', 'FontName', 'Arial'); xlabel('Time (ms)', 'FontWeight', 'bold', 'FontSize', 12, 'FontName', 'Arial'); ylabel({'Amplitude (a.u)'}, 'FontWeight', 'bold', 'FontSize', 13, 'FontName', 'Arial');
+    %plot(p,'-o','LineWidth',2.5,'MarkerEdgeColor',[0.6 0.6 0.6],'MarkerFaceColor',[0.6 0.6 0.6],'MarkerSize',8)
+    set(gca, 'XTick',xticks, 'XTickLabel',xlabels,'Fontsize',14, 'FontWeight', 'bold', 'FontName', 'Arial'); xlabel('Time (ms)', 'FontWeight', 'bold', 'FontSize', 14, 'FontName', 'Arial'); ylabel({'Amplitude (a.u)'}, 'FontWeight', 'bold', 'FontSize', 16, 'FontName', 'Arial');
     %title([varnm{i} ' mean in controls']); xlim([0 251]); %ylim([0 1]);%axis square
     
     box off
@@ -965,17 +967,17 @@ end
 
 %Now just fig legend
 
-    figure(figcount+1);set(gcf, 'Units','normalized', 'Position', [0 0 0.25 0.25]);
-    plot(m1,'--','LineWidth',2,'Color',[0/255 0/255 255/255]); hold on
-    plot(m1_d,':','LineWidth',2,'Color',[0/255 0/255 255/255]);
-    plot(m1_pat,'--','LineWidth',2,'Color',[255/255 0/255 0/255]);
-    plot(m1_d_pat,':','LineWidth',2,'Color',[255/255 0/255 0/255]); legendflex({'rep3 CON','dev CON','rep3 FTLD','dev FTLD'},'fontsize',14)
+    figure(figcount+1);set(gcf, 'Units','normalized', 'Position', [0 0 0.33 0.33]);
+    plot(m1,'--','LineWidth',2.5,'Color',[0/255 0/255 255/255]); hold on
+    plot(m1_d,':','LineWidth',2.5,'Color',[0/255 0/255 255/255]);
+    plot(m1_pat,'--','LineWidth',2.5,'Color',[255/255 0/255 0/255]);
+    plot(m1_d_pat,':','LineWidth',2.5,'Color',[255/255 0/255 0/255]); legendflex({'rep3 CON','dev CON','rep3 FTLD','dev FTLD'},'fontsize',14)
     boundedline([1:size(m1,2)],m1,s1,'cmap',[0/255 0/255 255/255], 'transparency', 0.1, 'orientation', 'vert', 'alpha');
     boundedline([1:size(m1,2)],m1_d,s1_d,'cmap',[0/255 0/255 255/255], 'transparency', 0.1, 'orientation', 'vert', 'alpha');
     boundedline([1:size(m1_pat,2)],m1_pat,s1_pat,'cmap',[255/255 0/255 0/255], 'transparency', 0.1, 'orientation', 'vert', 'alpha');
     boundedline([1:size(m1_pat,2)],m1_d_pat,s1_d_pat,'cmap',[255/255 0/255 0/255], 'transparency', 0.1, 'orientation', 'vert', 'alpha');
-    %plot(p,'-o','LineWidth',2,'MarkerEdgeColor',[0.6 0.6 0.6],'MarkerFaceColor',[0.6 0.6 0.6],'MarkerSize',8)
-    set(gca, 'XTick',xticks, 'XTickLabel',xlabels,'Fontsize',12, 'FontWeight', 'bold', 'FontName', 'Arial'); xlabel('Time (ms)', 'FontWeight', 'bold', 'FontSize', 12, 'FontName', 'Arial'); ylabel({'Amplitude (a.u)'}, 'FontWeight', 'bold', 'FontSize', 13, 'FontName', 'Arial');
+    %plot(p,'-o','LineWidth',2.5,'MarkerEdgeColor',[0.6 0.6 0.6],'MarkerFaceColor',[0.6 0.6 0.6],'MarkerSize',8)
+    set(gca, 'XTick',xticks, 'XTickLabel',xlabels,'Fontsize',14, 'FontWeight', 'bold', 'FontName', 'Arial'); xlabel('Time (ms)', 'FontWeight', 'bold', 'FontSize', 14, 'FontName', 'Arial'); ylabel({'Amplitude (a.u)'}, 'FontWeight', 'bold', 'FontSize', 16, 'FontName', 'Arial');
     %title([varnm{i} ' mean in controls']); xlim([0 251]); %ylim([0 1]);%axis square
     
     box off
