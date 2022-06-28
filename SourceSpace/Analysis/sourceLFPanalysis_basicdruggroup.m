@@ -9,9 +9,6 @@ function sourceLFPanalysis_basicdruggroup
 
 addpath('/imaging/rowe/users/ap09/Toolbox')
 
-%for legend flex
-addpath('/imaging/rowe/users/ap09/Toolbox/ekMEG/ntadscripts')
-
 addpath('/imaging/local/software/spm_cbu_svn/releases/spm12_latest')
 
 addpath('/imaging/rowe/users/ap09/Toolbox/fieldtrip')
@@ -21,11 +18,21 @@ addpath(genpath('/imaging/rowe/users/ap09/Toolbox/boundedline-pkg'))
 addpath(genpath('/imaging/rowe/users/ap09/Toolbox/VBA-toolbox'))
 
 
+%For mixed anova
+
+addpath(genpath('/imaging/rowe/users/ap09/Toolbox/mixed_between_within_anova'))
+
+%for legend flex
+addpath('/imaging/rowe/users/ap09/Toolbox/ekMEG/ntadscripts')
+
+
 ft_defaults()
 
 FigOutDir = '/imaging/rowe/users/ap09/Projects/FTD-MEG-MEM/newmaxfilter/analysis/SourceSpace/LFPs_icafixes/LFPs_COH_wrad_allMEGch_wfids/C_Plots/DrugAnalysis';
 
-figoutprefix = 'adv_ssst_newmaxf_fixICA_wfids_nodipcor_nop10p19';
+%figoutprefix = 'commconpatplac_remo_wbothsess';
+figoutprefix = 'commconpatplac_remo_wbothsess_noc22'; %Change due to subj error
+
 
 
 %Other setup
@@ -59,10 +66,11 @@ LFPprefix = 'LFP6inv1';
 
 LFPpostfix = 'rov123_sss.mat'; %for now
 
-
+%28/06/22 - remove error with con drug sess id
 Con_P = '/imaging/rowe/users/ap09/Projects/FTD-MEG-MEM/ERP/analysis/LFPs/A_Scripts/Con_P.txt';
 
-Con_D = '/imaging/rowe/users/ap09/Projects/FTD-MEG-MEM/ERP/analysis/LFPs/A_Scripts/Con_D.txt';
+%Con_D = '/imaging/rowe/users/ap09/Projects/FTD-MEG-MEM/ERP/analysis/LFPs/A_Scripts/Con_D.txt';
+Con_D = '/imaging/rowe/users/ap09/Projects/FTD-MEG-MEM/ERP/analysis/LFPs/A_Scripts/Con_D_noc22.txt';
 
 Pat_P = '/imaging/rowe/users/ap09/Projects/FTD-MEG-MEM/ERP/analysis/LFPs/A_Scripts/Pat_P.txt';
 
@@ -762,7 +770,7 @@ for pplacsubj = 1:length(PlacData_pat(:,1))
         
         %find also diag info
         
-        PatMatch=strcmp(DiagData(:,1), PlacData_pat{pplacsubj});
+        PatMatch=strcmpi(DiagData(:,1), PlacData_pat{pplacsubj});
 
         extdiaginfo(submatcount_pat,1) = DiagData(PatMatch==1,2);
         
@@ -1080,7 +1088,7 @@ for pdrugsubj = 1:length(DrugData_pat(:,1))
         
         %find also diag info
         
-        PatMatch=strcmp(DiagData(:,1), DrugData_pat{pdrugsubj});
+        PatMatch=strcmpi(DiagData(:,1), DrugData_pat{pdrugsubj});
 
         extdiaginfo(submatcount_pat,1) = DiagData(PatMatch==1,2);
         
