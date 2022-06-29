@@ -1,4 +1,4 @@
-function preprocall_MMN_v2_ek_APmod_noEEGbadtrl_icafixes
+function preprocall_MMN_sourcespace
 %% Preprocessing script for Roving MMN
 % Rik Henson (2017), Modifications by Ece K (2020).
 % Modifications indicated by EK
@@ -50,7 +50,10 @@ origfname = 'rov123_sss.fif';
 subjects = {'c1','c10','c11','c12','c13','c14','c15','c16','c2','c21','c22','c23','c24','c3','c4','c5','c6','c7','c8','c9','p1','p10','p11','p12','p13','p14','p15','p16','p17','p18','p19','p2','p21','p22','p23','p24','p25','p3','p4','p5','p6','p7','p8','p9'};
 % subjects = {'p3'}; %prob subject - something wrong with p3 (session 2)
 % subjects = {'p4','p5','p6','p7','p8','p9'}; %ran again because of aforementioned subject session
-% 
+
+%290622 - take out c22
+subjects = {'c1','c10','c11','c12','c13','c14','c15','c16','c2','c21','c23','c24','c3','c4','c5','c6','c7','c8','c9','p1','p10','p11','p12','p13','p14','p15','p16','p17','p18','p19','p2','p21','p22','p23','p24','p25','p3','p4','p5','p6','p7','p8','p9'};
+
 sessions = {'s1', 's2'};
 
 % 110221/missing subject
@@ -79,7 +82,7 @@ doartefact = 1; % Artefact rejection,
 doica = 1; % Run ICA
 doepoch = 1; % Epoch
 doartefact2 = 1; % Second artefact rejection (not sure about this, will need to ask again) - actually this is bad trials being removed :)
-doaverage = 1; % Average trials and low pass
+doaverage = 0; % Average trials and low pass
 docontrast = 0; % Compute contrasts
 dofilter2 = 0; % Filter to analysis-specific frequency band
 dorename = 0; % Rename files to something sensible
@@ -401,7 +404,7 @@ if doica
     all_ica_remove = {}; all_ica_TraMat = {}; all_ica_out = {};
     
     %arttopos = load('/imaging/rh01/Methods/MEGEEG70ArtifactTemplateTopographies');
-    arttopos = load('/imaging/rowe/users/ek01/collab/Alistair_FTD_MEM/scripts/MEGEEG70ArtifactTemplateTopographies');
+    arttopos = load('/imaging/rowe/users/ek01/collab/Alistair_FTD_MEM/MEGEEG70ArtifactTemplateTopographies');
 
     
     sparefs = {};

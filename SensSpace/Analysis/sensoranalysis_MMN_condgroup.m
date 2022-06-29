@@ -1,4 +1,4 @@
-function sensoranalysis_MMN_groupdrug
+function sensoranalysis_MMN_condgroup
 
 
 %% NTAD Sensor level RMS analysis for Roving (Ece K, 2019)
@@ -26,6 +26,12 @@ addpath('/imaging/local/software/spm_cbu_svn/releases/spm12_latest/external/fiel
 ft_defaults()
 
 
+%For mixed anova
+
+addpath(genpath('/imaging/rowe/users/ap09/Toolbox/mixed_between_within_anova'))
+
+
+
 %% Other setup
 
 subjs = {'c2','c3','c7','c8','c9','c11','c13','c14','c18','c20','c23','c24','c1','c4','c5','c6','c10','c12','c15','c16','c17','c19','c21','c22', 'p1','p3','p6','p7','p9','p12','p13','p14','p17','p18','p21','p24','p2','p4','p5','p8','p10','p11','p15','p16','p19','p20','p22','p23','p25'};
@@ -37,8 +43,10 @@ sessions = {'s1','s1','s1','s1','s1','s1','s1','s1','s1','s1','s1','s1','s2','s2
 %Final subjects - those w/both sessions
 
 
+%2806 - remove error subj
+%subjs_new = {'c2';'c3';'c7';'c8';'c9';'c11';'c13';'c14';'c23';'c24';'c1';'c4';'c5';'c6';'c10';'c12';'c15';'c16';'c21';'c22'; 'p1';'p6';'p7';'p9';'p12';'p13';'p14';'p17';'p18';'p21';'p24';'p2';'p4';'p5';'p8';'p11';'p16';'p22';'p23';'p25'};
 
-subjs_new = {'c2';'c3';'c7';'c8';'c9';'c11';'c13';'c14';'c23';'c24';'c1';'c4';'c5';'c6';'c10';'c12';'c15';'c16';'c21';'c22'; 'p1';'p6';'p7';'p9';'p12';'p13';'p14';'p17';'p18';'p21';'p24';'p2';'p4';'p5';'p8';'p11';'p16';'p22';'p23';'p25'};
+subjs_new = {'c2';'c3';'c7';'c8';'c9';'c11';'c13';'c14';'c23';'c24';'c1';'c4';'c5';'c6';'c10';'c12';'c15';'c16';'c21';'p1';'p6';'p7';'p9';'p12';'p13';'p14';'p17';'p18';'p21';'p24';'p2';'p4';'p5';'p8';'p11';'p16';'p22';'p23';'p25'};
 
 
 %Now find their sessions
@@ -78,7 +86,7 @@ basefname = 'rov123_ssst.mat'; %for now
 
 %Both sessions no outliers
 
-OUTpre = 'adv_ssst_newmaxf_fixICA_normALLtrls_automeg_nonorm_remo_bothsess_newsensors';
+OUTpre = 'adv_ssst_newmaxf_fixICA_normALLtrls_automeg_noc22_nonorm_remo_bothsess_newsensors';
 
 
 FigOutDir = '/imaging/rowe/users/ap09/Projects/FTD-MEG-MEM/newmaxfilter/analysis/SensSpace/ERF_icafixes/C_Plots';
@@ -181,7 +189,7 @@ for sub=1:length(subjs)
         submatcount_pat = submatcount_pat + 1;
         
         
-        diagmatch = strcmp(subjs{sub}, DiagData(:,1));
+        diagmatch = strcmpi(subjs{sub}, DiagData(:,1));
         
         patgrpst(subcount,1) = DiagData{diagmatch==1,2};
         
