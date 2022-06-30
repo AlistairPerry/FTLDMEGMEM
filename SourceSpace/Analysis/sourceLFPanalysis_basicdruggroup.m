@@ -3007,7 +3007,7 @@ p=k*(p<0.05); p(find(p==0))=NaN; p(1:51)=NaN;
 
 figure(figcount+1); set(gcf, 'units','normalized','outerposition',[0 0 0.50 0.50]);
 plot(m1_pat(1,:),'LineWidth',4,'Color',[255/255 0/255 0/255]); hold on
-plot(m1(1,:),'LineWidth',4,'Color',[0 0 255]./255); legendflex({'CON','bvFTD/PSP'},'fontsize',13, 'FontWeight', 'bold');
+plot(m1(1,:),'LineWidth',4,'Color',[0 0 255]./255); legendflex({'bvFTD/PSP', 'CON'},'fontsize',13, 'FontWeight', 'bold');
 boundedline([1:size(m1_pat,2)],m1_pat(1,:),s1_pat(1,:),'cmap',[255/255 0/255 0/255], 'transparency', 0.3, 'orientation', 'vert', 'alpha');
 boundedline([1:size(m1,2)],m1(1,:),s1(1,:),'cmap',[0 0 255]./255, 'transparency', 0.3, 'orientation', 'vert', 'alpha');
 plot(p,'-o','LineWidth',2,'MarkerEdgeColor',[0.6 0.6 0.6],'MarkerFaceColor',[0.6 0.6 0.6],'MarkerSize',8)
@@ -3094,6 +3094,16 @@ box off
 set(gca, 'TickDir', 'Out')
 
 %xlim([0 251]);
+
+
+%Save figures :)
+
+saveas(figure(figcount+1), [FigOutDir '/' figoutprefix '_' 'LFP_' 'rep3_RAUD_' 'ControlsandPats' '_Diff_DrugDiff_fullsample.tif']);
+
+saveas(figure(figcount+2), [FigOutDir '/' figoutprefix '_' 'LFP_' 'rep3_RAUD_' 'Controls' '_bothsess_fullsample.tif']);
+
+saveas(figure(figcount+3), [FigOutDir '/' figoutprefix '_' 'LFP_' 'rep3_RAUD_' 'Pats' '_bothsess_fullsample.tif']);
+
 
 %%=========================================================================
 %% DiagnosisGroup
