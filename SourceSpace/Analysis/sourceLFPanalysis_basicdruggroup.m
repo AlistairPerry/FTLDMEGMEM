@@ -2770,7 +2770,12 @@ for source = 1:nsources
     
     [h,p,ci,stats]=ttest2(squeeze(data_diff),squeeze(data_diff_pat));
     k=max(max([m1(1,:); m1_pat(1,:)]))+max(max([s1(1,:);s1_pat(1,:)]));k=k*1.1;
+    p_forfdr = p(52:end);
     p=k*(p<0.05); p(find(p==0))=NaN; p(1:51)=NaN;
+    
+    
+    %Add FDR-correction
+    [h, crit_p, adj_ci_cvrg, adj_p]=fdr_bh(p_forfdr);
     
     
     %   Don't need to do the below
@@ -2786,6 +2791,20 @@ for source = 1:nsources
     boundedline([1:size(m1_pat,2)],m1_pat(1,:),s1_pat(1,:),'cmap',[255/255 0/255 0/255], 'transparency', 0.3, 'orientation', 'vert', 'alpha');
     boundedline([1:size(m1,2)],m1(1,:),s1(1,:),'cmap',[0 0 255]./255, 'transparency', 0.3, 'orientation', 'vert', 'alpha');
     plot(p,'-o','LineWidth',2,'MarkerEdgeColor',[0.6 0.6 0.6],'MarkerFaceColor',[0.6 0.6 0.6],'MarkerSize',8)
+    
+    
+    %Plot if time-points surviving FDR-correction
+    if nnz(h)
+        
+        %Add back in NaNs
+        hnew = cat(2, repmat(0,[1,51]), h);
+      
+        hnew(hnew~=1) = NaN;
+        
+        plot(hnew,'-x','LineWidth',2,'MarkerEdgeColor',[0 0 0],'MarkerFaceColor',[0.6 0.6 0.6],'MarkerSize',8)
+        
+    end
+    
     set(gca, 'XTick',xticks, 'XTickLabel',xlabels,'fontsize',10); xlabel('Time (ms)'); ylabel('MMN PLA - MEM')
     title([grandavgdev.label(source) ' MMN3 DrugDiff'], 'Fontsize',10); xlim([0 251]); %ylim([0 1]);%axis square
     
@@ -2935,83 +2954,146 @@ summrestable.Properties.VariableNames = {'Group' 'Drug' 'Int'};
 writetable(summrestable, [FigOutDir '/' figoutprefix '_' 'LFP_'  'P3mean' '_rep3_restable_2wayANOVA_ConsandPats_DrugInt.txt']);
 
 
+%% Post-hoc analysis 
+
+%Given marginal effect on RAUD - see what relationship is
+%Is already loaded but double check
+
+source = 6;
+
+figcount = 14;
+
+
+%Start with controls
+
+
+data = avgstd3_col(:,:,source)-avgdev_col(:,:,source);
+
+data_d = avgstd3_d_col(:,:,source)-avgdev_d_col(:,:,source);
 
     
-%%=========================================================================
-%% RFT
-%%=========================================================================
+    
+%And now patients
 
-% figcount = 13;
-% 
-% %Setup DM
-% 
-% %First, set up design matrix for RFT
-% 
-% DM = zeros(nfilesc+nfilesp,2);
-% 
-% DM(1:nfilesc,1) = repmat(1, [nfilesc 1]);
-% 
-% DM(nfilesc+1:end,2) = repmat(1, [nfilesp 1]);
-% 
-% 
-% c = [1; -1];
-% 
-% 
-% %Just do rep3
-% 
-% for source = 4:nsources
-%    
-%     
-%     %Start with controls
-%     
-%     
-%     data = avgstd3_col(:,:,source)-avgdev_col(:,:,source);
-%     
-%     data_d = avgstd3_d_col(:,:,source)-avgdev_d_col(:,:,source);
-%     
-%     
-%     data_diff = data - data_d;
-%     
-%     
-%     
-%     %And now patients
-%     
-%     data_pat = avgstd3_pat_col(:,:,source)-avgdev_pat_col(:,:,source);
-%     
-%     data_d_pat = avgstd3_d_pat_col(:,:,source)-avgdev_d_pat_col(:,:,source);
-%     
-%     
-%     data_diff_pat = data_pat - data_d_pat;
-%    
-%     
-%     
-%     figcount = figcount + 1;
-%         
-%         
-%     mmndiffall = cat(1, data_diff, data_diff_pat);
-%     
-%     %If want to crop baseline period
-%     %y = mmndiffall(:,51:end);
-%     
-%     y = mmndiffall;
-%     
-%     
-%     [stat,out] = RFT_GLM_contrast(DM,y,c,'F',1,1);
-%     
-%     
-%     %Save figure
-%     
-%     saveas(figure(figcount), [FigOutDir '/' figoutprefix '_' 'LFP_' 'rep3_' 'ControlsandPats_' grandavgdev.label{source} '_Diff_DrugDiff_fullsample_RFT.tif']);
-%     
-%     
-%     %Saveoutput
-%     
-%     save([FigOutDir '/' figoutprefix '_' 'LFP_' 'rep3_' 'ControlsandPats_' grandavgdev.label{source} '_Diff_DrugDiff_fullsample_RFT.mat'], 'stat');
-%     
-%     
-% end
+data_pat = avgstd3_pat_col(:,:,source)-avgdev_pat_col(:,:,source);
+
+data_pat_d = avgstd3_d_pat_col(:,:,source)-avgdev_d_pat_col(:,:,source);
+
+
+
+%Difference-difference
+
+data_diff = data - data_d;
+
+data_diff_pat = data_pat - data_d_pat;
     
 
+%Calculate means
+
+m1=squeeze(nanmean(data_diff,1));
+
+s1=squeeze(nanstd(data_diff)./sqrt(size(data_diff,1)));
+
+
+m1_pat = squeeze(nanmean(data_diff_pat,1));
+
+s1_pat = squeeze(nanstd(data_diff_pat)./sqrt(size(data_diff_pat,1)));
+
+
+[h,p,ci,stats]=ttest2(squeeze(data_diff),squeeze(data_diff_pat));
+k=max(max([m1(1,:); m1_pat(1,:)]))+max(max([s1(1,:);s1_pat(1,:)]));k=k*1.1;
+p=k*(p<0.05); p(find(p==0))=NaN; p(1:51)=NaN;
+
+
+figure(figcount+1); set(gcf, 'units','normalized','outerposition',[0 0 0.50 0.50]);
+plot(m1_pat(1,:),'LineWidth',4,'Color',[255/255 0/255 0/255]); hold on
+plot(m1(1,:),'LineWidth',4,'Color',[0 0 255]./255); legendflex({'CON','bvFTD/PSP'},'fontsize',13, 'FontWeight', 'bold');
+boundedline([1:size(m1_pat,2)],m1_pat(1,:),s1_pat(1,:),'cmap',[255/255 0/255 0/255], 'transparency', 0.3, 'orientation', 'vert', 'alpha');
+boundedline([1:size(m1,2)],m1(1,:),s1(1,:),'cmap',[0 0 255]./255, 'transparency', 0.3, 'orientation', 'vert', 'alpha');
+plot(p,'-o','LineWidth',2,'MarkerEdgeColor',[0.6 0.6 0.6],'MarkerFaceColor',[0.6 0.6 0.6],'MarkerSize',8)
+
+set(gca, 'XTick',xticks, 'XTickLabel',xlabels,'Fontsize',14, 'FontWeight', 'bold', 'FontName', 'Arial'); xlabel('Time (ms)', 'FontWeight', 'bold', 'FontSize', 14, 'FontName', 'Arial'); ylabel({'\Delta Mismatch response'; '(PLA-MEM)'}, 'FontWeight', 'bold', 'FontSize', 14, 'FontName', 'Arial');
+
+box off
+
+set(gca, 'TickDir', 'Out')
+
+
+%NOW BREAKDOWN
+
+%Calculate means and sd
+
+m1=squeeze(nanmean(data,1));
+
+s1=squeeze(nanstd(data)./sqrt(size(data,1)));
+
+
+m1_d=squeeze(nanmean(data_d,1));
+
+s1_d=squeeze(nanstd(data_d)./sqrt(size(data_d,1)));
+
+
+m1_pat = squeeze(nanmean(data_pat,1));
+
+s1_pat = squeeze(nanstd(data_pat)./sqrt(size(data_pat,1)));
+
+
+m1_pat_d = squeeze(nanmean(data_pat_d,1));
+
+s1_pat_d = squeeze(nanstd(data_pat_d)./sqrt(size(data_pat_d,1)));
+
+
+%Paired ttests
+%Cons
+
+[h,p,ci,stats]=ttest(squeeze(data),squeeze(data_d));
+k=max(max([m1(1,:); m1_d(1,:)]))+max(max([m1(1,:);m1_d(1,:)]));k=k*1.1;
+p=k*(p<0.05); p(find(p==0))=NaN; p(1:51)=NaN;
+
+
+%Pats
+
+[h,p_pat,ci,stats]=ttest(squeeze(data_pat),squeeze(data_pat_d));
+k=max(max([m1_pat(1,:); m1_pat_d(1,:)]))+max(max([m1_pat(1,:);m1_pat_d(1,:)]));k=k*1.1;
+p_pat=k*(p_pat<0.05); p_pat(find(p_pat==0))=NaN; p_pat(1:51)=NaN;
+
+
+%PLOTS
+
+%Cons
+figure(figcount+2); set(gcf, 'units','normalized','outerposition',[0 0 0.50 0.50]);
+plot(m1_d,':','LineWidth',2.5,'Color',[0/255 0/255 255/255]); hold on
+plot(m1,'--','LineWidth',2.5,'Color',[0/255 0/255 255/255]); legendflex({'CON MEM','CON PLA'},'fontsize',13, 'FontWeight', 'bold');
+boundedline([1:size(m1_pat,2)],m1_d(1,:),s1_d(1,:),'cmap',[0/255 0/255 255/255], 'transparency', 0.1, 'orientation', 'vert', 'alpha');
+boundedline([1:size(m1,2)],m1(1,:),s1(1,:),'cmap',[0 0 255]./255, 'transparency', 0.1, 'orientation', 'vert', 'alpha');
+plot(p,'-o','LineWidth',2,'MarkerEdgeColor',[0.6 0.6 0.6],'MarkerFaceColor',[0.6 0.6 0.6],'MarkerSize',8)
+
+
+set(gca, 'XTick',xticks, 'XTickLabel',xlabels,'Fontsize',14, 'FontWeight', 'bold', 'FontName', 'Arial'); xlabel('Time (ms)', 'FontWeight', 'bold', 'FontSize', 14, 'FontName', 'Arial'); ylabel({'Mismatch response'; '(rep3-dev)'}, 'FontWeight', 'bold', 'FontSize', 14, 'FontName', 'Arial');
+%title([varnm{i} ' mean in controls']); xlim([0 251]); %ylim([0 1]);%axis square
+
+box off
+
+set(gca, 'TickDir', 'Out')
+
+
+%Pats
+figure(figcount+3); set(gcf, 'units','normalized','outerposition',[0 0 0.50 0.50]);
+plot(m1_pat_d,':','LineWidth',2.5,'Color',[255/255 0/255 0/255]); hold on
+plot(m1_pat,'--','LineWidth',2.5,'Color',[255/255 0/255 0/255]); legendflex({'bvFTD/PSP MEM','bvFTD/PSP PLA'},'fontsize',13, 'FontWeight', 'bold');
+boundedline([1:size(m1_pat_d,2)],m1_pat_d(1,:),s1_pat_d(1,:),'cmap',[255/255 0/255 0/255], 'transparency', 0.1, 'orientation', 'vert', 'alpha');
+boundedline([1:size(m1_pat,2)],m1_pat(1,:),s1_pat(1,:),'cmap',[255 0 0]./255, 'transparency', 0.1, 'orientation', 'vert', 'alpha');
+plot(p_pat,'-o','LineWidth',2,'MarkerEdgeColor',[0.6 0.6 0.6],'MarkerFaceColor',[0.6 0.6 0.6],'MarkerSize',8)
+
+
+set(gca, 'XTick',xticks, 'XTickLabel',xlabels,'Fontsize',14, 'FontWeight', 'bold', 'FontName', 'Arial'); xlabel('Time (ms)', 'FontWeight', 'bold', 'FontSize', 14, 'FontName', 'Arial'); ylabel({'Mismatch response'; '(rep3-dev)'}, 'FontWeight', 'bold', 'FontSize', 14, 'FontName', 'Arial');
+%title([varnm{i} ' mean in controls']); xlim([0 251]); %ylim([0 1]);%axis square
+
+box off
+
+set(gca, 'TickDir', 'Out')
+
+%xlim([0 251]);
 
 %%=========================================================================
 %% DiagnosisGroup
@@ -3082,7 +3164,7 @@ F2all = cat(1, F2, F2p_bv, F2p_psp);
 
 %Rep 6
 
-figcount = 14;
+figcount = 16;
 
 
 for source = 1:nsources
@@ -3218,7 +3300,7 @@ saveas(figure(figcount+2), [FigOutDir '/' figoutprefix '_' 'LFP_'  'ConssAndPats
 MMNpall = [];
 
 
-figcount = 16;
+figcount = 17;
 
 
 for source = 1:nsources
