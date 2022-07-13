@@ -1,3 +1,8 @@
+
+# Setup -------------------------------------------------------------------
+
+# Setup working dir and paths
+
 setwd("/Users/alistairperry/Documents/Cambridge/Project/Analysis/LFPs/newmaxfilter_icafixes/LFPs_COH_wrad_allMEGch_wfids/C_Plots/DrugAnalysis/MRS")
 
 library("tidyr")
@@ -17,6 +22,8 @@ library("bayestestR")
 library("interactions")
 
 
+# Output directory and prefix
+
 FigOutDir  <- "/Users/alistairperry/Documents/Cambridge/Project/Analysis/LFPs/newmaxfilter_icafixes/LFPs_COH_wrad_allMEGch_wfids/C_Plots/DrugAnalysis/MRS/Scatt/"
 dir.create(FigOutDir)
 
@@ -24,156 +31,62 @@ dir.create(FigOutDir)
 FigOutPrefix <- "allsubjs"
 
 
-# Right hemi only
+# Width and height variables for saved plots 
+
+w = 6
+h = 4
+
+
+# Regions to load and analyse
 
 ROInames <- c("RIFG", "RSTG", "RAUD")
 
 Labnames <- c("R IFG", "R STG", "R AUD")
 
 
-# width and height variables for saved plots - leave it as default for now
 
-w = 6
-h = 4
+# Correlation Plots - Drug Difference by GABA -----------------------------
 
+# Figures 4A
 
-
-for (i in seq(1,3)) {
+for (i in seq(1,length(ROInames))) {
 
   
+# Load data
+    
 datfname <- paste("adv_ssst_newmaxf_fixICA_wfids_nodipcor_nop10p19_FIX_LFPs_MRSIFGgabacorassoc_meanMMN3_DrugDiff_Pats_fullsample_stats_LMMtableforR_", ROInames[i], ".txt", sep="")   
 
 LFPdata_wide <- read.table(datfname, header = TRUE)
 
-LFPdata_long <- gather(LFPdata_wide, drug, MMN, PLA:MEM, factor_key = TRUE)
 
-
-LFPdata_long$Subject <- factor(LFPdata_long$Subject)
-
-
-LFPdata_long$MMN_z <- scale(LFPdata_long$MMN)
-
-LFPdata_long$GABA_z <- scale(LFPdata_long$GABA)
-
-
-contrasts(LFPdata_long$drug) <- contr.sum
-
-mixed.lmer <- lmer(MMN_z ~ GABA_z*drug + (1|Subject), data = LFPdata_long)
-
-lme_res <- anova(mixed.lmer)
-
-
-#Write table - should write to current dir
-
-outfname <- paste("LMEres_druggabaint_", ROInames[i],".txt", sep="")
-write.table(lme_res, file = outfname)
-
-
-#Change Plots
+# Calculate drug difference in MMN
 
 LFPdata_wide$DrugDiff <- LFPdata_wide$PLA-LFPdata_wide$MEM
 
-data <- LFPdata_long
-diff_data <- LFPdata_wide
 
-# panel A
-MMN_drug_lc_plot <- ggplot(data = data, aes(x = GABA, y = MMN)) +
+# Correlations
+
+LFPdata_wide$Diag <- as.factor(LFPdata_wide$Diag)
+
+
+# Start scatter
+
+fig <- ggplot(LFPdata_wide, aes(GABA, DrugDiff, col = Diag)) + 
   
-  # gray vertical lines to connect observations from same subject
-  geom_segment(data = diff_data, aes(x = GABA, y = PLA,
-                                     xend = GABA, yend = MEM),
-               size = 0.75, colour = "grey50") +
-  # dark gray arrows pointing from placebo to atomoxetine
-  geom_segment(data = diff_data %>%
-                 # only show arrows for participants with meaningful drug effect
-                 dplyr::filter(abs(DrugDiff) > .005),
-               aes(x = GABA, y = PLA,
-                   xend = GABA, yend = MEM),
-               arrow = arrow(length = unit(0.175, "inches"), angle = 30),
-               lineend = "round", linejoin = "mitre",
-               size = .75, colour = "grey50") +
   
-  # dots, filled by drug condition
-  geom_point(aes(fill = drug), shape = 21, colour = "black", size = 2.5, stroke = 1.2) +
-  # trend lines separately for each drug condition
-  geom_smooth(aes(colour = drug), method = "lm", se = FALSE, size = 1.25) +
-  # specify drug condition colours
-  scale_fill_manual(
-    limits = c("MEM", "PLA"),
-    values = c(`MEM` = "#E41A1C", `PLA` = "#377EB8"),
-    labels = c(`MEM` = "MEM", `PLA` = "PLA")
-  ) +
-  scale_colour_manual(
-    limits = c("MEM", "PLA"),
-    values = c(`MEM` = "#E41A1C", `PLA` = "#377EB8"),
-    labels = c(`MEM` = "MEM", `PLA` = "PLA")
-  ) +
-  # final tweaks
-  # ylims here will best fit R AUD
-  coord_cartesian(xlim = c(1.25, 2.75), ylim = c(-0.31, 0.11), expand = FALSE) +
-  labs(x = "GABA rIFG (cor.)",
-       y = paste("MMN", Labnames[i], sep = " ")) +
-  theme_classic() +
-  theme(
-    legend.title = element_blank(),
-    legend.position = "none",
-    legend.text = element_text(size = 15, colour = "black"),
-    #panel.grid.major = ggplot2::element_line(colour = "#e0e0e0", size = 0.25),
-    #panel.grid.minor = ggplot2::element_blank(),
-    #axis.ticks = ggplot2::element_line(color = "black", size = 17, face = "bold"),
-    #axis.line = ggplot2::element_line(size = 1, colour = "#cccccc"),
-    axis.text = ggplot2::element_text(color = "black", size = 17, face = "bold"),
-    axis.title = ggplot2::element_text(color = "black", size = 19, face = "bold"),
-    #plot.margin = ggplot2::margin(t = 10, b = 10, l = 10, r = 15)   
-  ) 
-
-
-MMN_drug_lc_plot
-
-figfname<-paste(FigOutDir, "LFP_DrugGABAInt_", ROInames[i], ".tiff", sep="")
-
-ggsave(figfname, width = w, height = h)
-
-
-#Bayes Analysis
-
-# `generalTestBF` computes the Bayes Factor for all possible restrictions of the below model formula.
-# The random intercept by subject is always included in all model variants.
-# Note the change in formula syntax for random effects.
-mixed.lmer_BF_alt <- BayesFactor::generalTestBF(
-  MMN_z ~ GABA_z*drug + Subject, data = LFPdata_long,
-  whichRandom = "Subject", neverExclude = "Subject")
-# For comparison, compute the Bayes Factor of the null model, with only a random intercept by subject
-mixed.lmer_BF_null <- BayesFactor::lmBF(
-  MMN_z ~ Subject, data = LFPdata_long, whichRandom = "Subject")
-# The final Bayes Factors for the alternative models are relative to the null model
-mixed.lmer_BF_final <- mixed.lmer_BF_alt / mixed.lmer_BF_null
-# Compute Bayes Factor for each *effect*, i.e. the Inclusion Bayes Factors
-
-bayestestR::bayesfactor_inclusion(mixed.lmer_BF_final, match_models = TRUE)
-
-
-#Save output to file
-
-outfname <- paste("LMEres_druggabaint_", ROInames[i], "_BF.txt")
-write.table(bayestestR::bayesfactor_inclusion(mixed.lmer_BF_final, match_models = TRUE), file = outfname) 
-
-
-#Correlations
-#Make label sizes bigger for conference
-
-diff_data$Diag <- as.factor(diff_data$Diag)
-
-fig <- ggplot(diff_data, aes(GABA, DrugDiff, col = Diag)) + 
+  # Individual data points and aes
   
   geom_point(size = 4, color = "red", fill = "red", aes(shape=Diag)) +
   
+  # Scale shape by disease group (Diag)
+  
   scale_shape_manual(values=c(22, 24)) +
   
-  #scale_color_manual(values = c('#E69F00', "#00BA38")) +
+  # Insert linear fit 
   
   geom_smooth(method = lm, size = 2, color = "black") + 
   
+  # Axis labels
   
   labs(y = expression(bold(paste(Delta, ' MMN (PLA-MEM)')))) + 
   
@@ -182,111 +95,121 @@ fig <- ggplot(diff_data, aes(GABA, DrugDiff, col = Diag)) +
   theme(axis.text.x = element_text(color = "black", size = 17, face = "bold"), axis.text.y = element_text(color = "black", size = 17, face = "bold"), axis.title.x = element_text(color = "black", size = 19, face = "bold"), axis.title.y = element_text(color = "black", size = 19, face = "bold")) +
   
   xlab("GABA rIFG (cor.)") +
-  
-  
-  #Turn caption off
-  
-  theme(legend.position = "none")
 
-
-fig
-
-figfname<-paste(FigOutDir, "LFP_DrugGABAInt_", ROInames[i], "_scat.tiff", sep="")
-
-ggsave(figfname, width = w, height = h)
-
-
-
-#Now with subgroup fits
-
-diff_data$Diag <- as.factor(diff_data$Diag)
-
-fig <- ggplot(diff_data, aes(x = GABA, y = DrugDiff, col = Diag)) + 
-  
-  geom_point(size = 4) + 
-  
-  scale_color_manual(values = c('#E69F00', "#00BA38")) +
-  
-  geom_smooth(method = lm, size = 2, color = "black") + 
-  
-  geom_smooth(method = lm, size = 2, fill = NA) + 
-  
-  labs(y = expression(bold(paste(Delta, ' MMN (PLA-MEM)')))) + 
-  
-  theme_classic() + 
-  
-  theme(axis.text.x = element_text(color = "black", size = 17, face = "bold"), axis.text.y = element_text(color = "black", size = 17, face = "bold"), axis.title.x = element_text(color = "black", size = 19, face = "bold"), axis.title.y = element_text(color = "black", size = 19, face = "bold")) +
-  
-  xlab("GABA rIFG (cor.)") +
-  
-  
-  #Turn caption off
+  #Lastly, turn caption off
   
   theme(legend.position = "none")
 
 
-fig
+  #Produce figure to window
 
-figfname<-paste(FigOutDir, "LFP_DrugGABAInt_", ROInames[i], "_scat_wsubgrpfit.tiff", sep="")
+  fig
 
-ggsave(figfname, width = w, height = h)
 
+  #And save to disk
+
+  figfname<-paste(FigOutDir, "LFP_DrugGABAInt_", ROInames[i], "_scat.tiff", sep="")
+
+  ggsave(figfname, width = w, height = h)
 
 }
 
-
-# #Supplementary: Mediating effect of Age ---------------------------------
-
-#For info on plotting continous moderator, see: https://cran.r-project.org/web/packages/interactions/vignettes/interactions.html#plotting-observed-data
+# Loop ended
 
 
-for (i in seq(1,3)) {
+# Drug Session Change Plots -----------------------------------------------
+
+# Figure 4B
+
+# Start loop again
+
+
+for (i in seq(1,length(ROInames))) {
   
   
-  #Setup and load ROI text file
+  # Load data, and setup long version
   
   datfname <- paste("adv_ssst_newmaxf_fixICA_wfids_nodipcor_nop10p19_FIX_LFPs_MRSIFGgabacorassoc_meanMMN3_DrugDiff_Pats_fullsample_stats_LMMtableforR_", ROInames[i], ".txt", sep="")   
   
   LFPdata_wide <- read.table(datfname, header = TRUE)
   
+  LFPdata_long <- gather(LFPdata_wide, drug, MMN, PLA:MEM, factor_key = TRUE)
+  
+  LFPdata_long$Subject <- factor(LFPdata_long$Subject)
+  
+  
+  # Calculate drug difference in MMN
+  
+  LFPdata_wide$DrugDiff <- LFPdata_wide$PLA-LFPdata_wide$MEM
+  
+  data <- LFPdata_long
   diff_data <- LFPdata_wide
   
-
-diff_data$Diag <- as.factor(diff_data$Diag)
-
-
-#Linear model fitting interaction
-
-fiti <- lm(Diff ~ GABA * Age, data = diff_data)
-
-
-#Main interaction plot
-
-fig <- interact_plot(fiti, pred = GABA, modx = Age, plot.points = TRUE, x.label = "GABA rIFG (cor.)", y.label = expression(bold(paste(Delta, ' MMN (PLA-MEM) R AUD'))), colors = "red", point.size = 4) + 
+  # Start panel
+  MMN_drug_lc_plot <- ggplot(data = data, aes(x = GABA, y = MMN)) +
+    
+    # gray vertical lines to connect observations from same subject
+    geom_segment(data = diff_data, aes(x = GABA, y = PLA,
+                                       xend = GABA, yend = MEM),
+                 size = 0.75, colour = "grey50") +
+    
+    # dark gray arrows pointing from placebo to drug
+    geom_segment(data = diff_data %>%
+                   # only show arrows for participants with meaningful drug effect
+                   dplyr::filter(abs(DrugDiff) > .005),
+                 aes(x = GABA, y = PLA,
+                     xend = GABA, yend = MEM),
+                 arrow = arrow(length = unit(0.175, "inches"), angle = 30),
+                 lineend = "round", linejoin = "mitre",
+                 size = .75, colour = "grey50") +
+    
+    # dots, filled by drug condition
+    geom_point(aes(fill = drug), shape = 21, colour = "black", size = 2.5, stroke = 1.2) +
+    # trend lines separately for each drug condition
+    geom_smooth(aes(colour = drug), method = "lm", se = FALSE, size = 1.25) +
+    # specify drug condition colours
+    scale_fill_manual(
+      limits = c("MEM", "PLA"),
+      values = c(`MEM` = "#E41A1C", `PLA` = "#377EB8"),
+      labels = c(`MEM` = "MEM", `PLA` = "PLA")
+    ) +
+    scale_colour_manual(
+      limits = c("MEM", "PLA"),
+      values = c(`MEM` = "#E41A1C", `PLA` = "#377EB8"),
+      labels = c(`MEM` = "MEM", `PLA` = "PLA")
+    ) +
+    
+    # final tweaks
+    # ylims here will best fit R AUD
+    coord_cartesian(xlim = c(1.25, 2.75), ylim = c(-0.31, 0.11), expand = FALSE) +
+    labs(x = "GABA rIFG (cor.)",
+         y = paste("MMN", Labnames[i], sep = " ")) +
+    theme_classic() +
+    theme(
+      legend.title = element_blank(),
+      legend.position = "none",
+      legend.text = element_text(size = 15, colour = "black"),
+      axis.text = ggplot2::element_text(color = "black", size = 17, face = "bold"),
+      axis.title = ggplot2::element_text(color = "black", size = 19, face = "bold"),
+    ) 
   
   
-  #Manually edit text labels
+  MMN_drug_lc_plot
   
-  theme_classic() +
+  figfname<-paste(FigOutDir, "LFP_DrugGABAInt_", ROInames[i], ".tiff", sep="")
   
-  theme(axis.text.x = element_text(color = "black", size = 17, face = "bold"), axis.text.y = element_text(color = "black", size = 17, face = "bold"), axis.title.x = element_text(color = "black", size = 19, face = "bold"), axis.title.y = element_text(color = "black", size = 19, face = "bold")) +
-  
-  
-  #Legend features
-  
-  theme(legend.key.size = unit(1, 'cm')) +
-  
-  theme(legend.text = element_text(size=12, color = "black", face = "bold"), legend.title = element_text(size=14, color = "black", face = "bold"))
-
-
-fig
-
-figfname<-paste(FigOutDir, "LFP_DrugGABAInt_", ROInames[i], "_scat_AgeMod.tiff", sep="")
-
-ggsave(figfname, width = w, height = h)
-
-
+  ggsave(figfname, width = w, height = h)
+ 
+   
 }
+  
+# Loop finished
+
+
+
+
+
+
 
 
 #Now E/I balance, just for RAUD
@@ -522,106 +445,57 @@ fig <- ggplot(LFPdata_wide, aes(GluGABArat, Diff, color = GABA)) +
   ggsave(figfname, width = w, height = h)
   
   
+  #Supplementary: Moderating effect of Age ---------------------------------
   
-  #Rep6
+  #For info on plotting continous moderator, see: https://cran.r-project.org/web/packages/interactions/vignettes/interactions.html#plotting-observed-data
   
-  #Correlations
-
   
   for (i in seq(1,3)) {
     
     
-    datfname <- paste("adv_ssst_newmaxf_fixICA_wfids_nodipcor_nop10p19_FIX_LFPs_MRSIFGgabacorassoc_meanMMN_DrugDiff_Pats_fullsample_stats_LMMtableforR_", ROInames[i], ".txt", sep="")   
+    #Setup and load ROI text file
     
-    
-    #Not sure why of the multiple steps but oh well..
-    
+    datfname <- paste("adv_ssst_newmaxf_fixICA_wfids_nodipcor_nop10p19_FIX_LFPs_MRSIFGgabacorassoc_meanMMN3_DrugDiff_Pats_fullsample_stats_LMMtableforR_", ROInames[i], ".txt", sep="")   
     
     LFPdata_wide <- read.table(datfname, header = TRUE)
     
-    LFPdata_wide$DrugDiff <- LFPdata_wide$PLA-LFPdata_wide$MEM
-    
     diff_data <- LFPdata_wide
-  
+    
+    
     diff_data$Diag <- as.factor(diff_data$Diag)
-  
- 
-   fig <- ggplot(diff_data, aes(GABA, DrugDiff, col = Diag)) + 
-    
-    geom_point(size = 4) + 
-    
-    scale_color_manual(values = c('#E69F00', "#00BA38")) +
-    
-    geom_smooth(method = lm, size = 2, color = "black") + 
     
     
+    #Linear model fitting interaction
     
-    theme_classic() + 
+    fiti <- lm(Diff ~ GABA * Age, data = diff_data)
     
-    theme(axis.text.x = element_text(color = "black", size = 17, face = "bold"), axis.text.y = element_text(color = "black", size = 17, face = "bold"), axis.title.x = element_text(color = "black", size = 19, face = "bold"), axis.title.y = element_text(color = "black", size = 19, face = "bold")) +
     
-    xlab("GABA rIFG (cor.)") +
+    #Main interaction plot
     
-    labs(y = expression(bold(paste(Delta, ' MMN (PLA-MEM)')))) + 
+    fig <- interact_plot(fiti, pred = GABA, modx = Age, plot.points = TRUE, x.label = "GABA rIFG (cor.)", y.label = expression(bold(paste(Delta, ' MMN (PLA-MEM) R AUD'))), colors = "red", point.size = 4) + 
+      
+      
+      #Manually edit text labels
+      
+      theme_classic() +
+      
+      theme(axis.text.x = element_text(color = "black", size = 17, face = "bold"), axis.text.y = element_text(color = "black", size = 17, face = "bold"), axis.title.x = element_text(color = "black", size = 19, face = "bold"), axis.title.y = element_text(color = "black", size = 19, face = "bold")) +
+      
+      
+      #Legend features
+      
+      theme(legend.key.size = unit(1, 'cm')) +
+      
+      theme(legend.text = element_text(size=12, color = "black", face = "bold"), legend.title = element_text(size=14, color = "black", face = "bold"))
     
-    #Turn caption off
     
-    theme(legend.position = "none")
-  
-  
-  fig
-  
-  figfname<-paste(FigOutDir, "LFP_DrugGABAInt_", ROInames[i], "rep6_scat.tiff", sep="")
-  
-  ggsave(figfname, width = w, height = h)
-  
-  
+    fig
+    
+    figfname<-paste(FigOutDir, "LFP_DrugGABAInt_", ROInames[i], "_scat_AgeMod.tiff", sep="")
+    
+    ggsave(figfname, width = w, height = h)
+    
+    
   }
   
-  
-  
-  i <- 1
-  
-  datfname <- paste("adv_ssst_newmaxf_fixICA_wfids_nodipcor_nop10p19_FIX_LFPs_MRSIFGgabacorassoc_meanMMN1_DrugDiff_Pats_fullsample_stats_LMMtableforR_", ROInames[i], ".txt", sep="")   
-  
-  
-  #Not sure why of the multiple steps but oh well..
-  
-  
-  LFPdata_wide <- read.table(datfname, header = TRUE)
-  
-  LFPdata_wide$DrugDiff <- LFPdata_wide$PLA-LFPdata_wide$MEM
-  
-  diff_data <- LFPdata_wide
-  
-  diff_data$Diag <- as.factor(diff_data$Diag)
-  
-  
-  fig <- ggplot(diff_data, aes(GABA, DrugDiff, col = Diag)) + 
-    
-    geom_point(size = 4) + 
-    
-    scale_color_manual(values = c('blue', "red")) +
-    
-    geom_smooth(method = lm, size = 2, color = "black") + 
-    
-    
-    labs(y = expression(bold(paste(Delta, ' MMN (PLA-MEM)')))) + 
-    
-    theme_classic() + 
-    
-    theme(axis.text.x = element_text(color = "black", size = 17, face = "bold"), axis.text.y = element_text(color = "black", size = 17, face = "bold"), axis.title.x = element_text(color = "black", size = 19, face = "bold"), axis.title.y = element_text(color = "black", size = 19, face = "bold")) +
-    
-    xlab("GABA rIFG (cor.)") 
-    
-    
-    #Turn caption off
-    
-    #theme(legend.position = "none")
-  
-  
-  fig
-  
-  figfname<-paste(FigOutDir, "LFP_DrugGABAInt_", ROInames[i], "rep1_scat_fkforcols.tiff", sep="")
-  
-  ggsave(figfname, width = w, height = h)
+#Finished
