@@ -21,8 +21,16 @@ The resources contained here can be allocated into 3 sections:
 
 The following information details how the main findings were produced, relating to sections 2 and 3 above.
 
+<br />
 
 ## R
+
+These scripts will produce the following findings:
+
+1. Differences in MEG responses across placebo and mematine sessions for controls and patient populations
+
+
+
 
 ## RMarkdown
 
