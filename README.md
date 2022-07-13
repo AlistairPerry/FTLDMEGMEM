@@ -4,6 +4,7 @@ This repository contains processing, analysis, and visualisation scripts that we
 
 * Perry, A., Hughes, L., Adams, N., Naessens, M., Murley, A., Rouse, M., ... & Rowe, J. (2022). The neurophysiological effect of NMDA-R antagonism of frontotemporal lobar degeneration is conditional on individual GABA concentration. Available as preprint at https://doi.org/10.21203/rs.3.rs-1609477/v1
 
+<br />
 
 This study investigated the influence of the pharmacological agent memantine on frontotemporal brain networks in persons with frontotemporal lobar degeneration (FTLD).
 
@@ -29,11 +30,19 @@ These scripts will produce the following findings:
 
 1. [MEG responses across placebo and mematine sessions for control and patient populations](https://github.com/AlistairPerry/FTLDMEGMEM/blob/main/SourceSpace/Plots/MMNmean_ConPatDrugInt_Source.R):
 
-  source("MMNmean_ConPatDrugInt_Source.R")
+	source("MMNmean_ConPatDrugInt_Source.R")
   
+	![LFP_MMN3_ConPatDrugInt_wfig_RAUD](https://user-images.githubusercontent.com/23748735/178841262-d03f9e92-bef5-4874-8521-69422e209aa7.png)
+
+<br />
+
+*And the principal finding*
+
+2. [Responses to drug (in auditory cortex) in patients are conditional on GABA concentrations](https://github.com/AlistairPerry/FTLDMEGMEM/blob/main/SourceSpace/Plots/LMM_druggabaint.R):
+
+	source("LMM_druggabaint.R")
   
-
-
+	![LFP_DrugGABAInt_RAUD_scat](https://user-images.githubusercontent.com/23748735/178842801-dfd39e24-2381-40a8-987c-3c1c678fad3b.png)
 
 
 ## RMarkdown
