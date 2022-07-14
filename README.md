@@ -20,7 +20,7 @@ The resources contained here can be allocated into 3 sections:
 <br />
 
 
-The following information details how the main findings were produced, relating to sections 2 and 3 above.
+Most importantly, the following information details how the main findings were produced, relating to sections 2 and 3 above.
 
 <br />
 
@@ -44,6 +44,8 @@ These scripts will produce the following findings:
   
 	![LFP_DrugGABAInt_RAUD_scat](https://user-images.githubusercontent.com/23748735/178842801-dfd39e24-2381-40a8-987c-3c1c678fad3b.png)
 
+
+<br />
 
 ## RMarkdown
 
