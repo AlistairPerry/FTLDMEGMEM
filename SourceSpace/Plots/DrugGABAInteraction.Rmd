@@ -9,17 +9,33 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## R Markdown
+<br>
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+<b>This is an R Markdown document. This contains a workflow for reproducing the results and plots obtained in the following publication:</b>
 
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+-   Perry, A., Hughes, L., Adams, N., Naessens, M., Murley, A., Rouse, M., ... & Rowe, J. (2022). The neurophysiological effect of NMDA-R antagonism of frontotemporal lobar degeneration is conditional on individual GABA concentration. *In review, Translational Psychiatry*
 
-```{r cars}
-summary(cars)
+<br>
+
+<b>The report produces the two main results from the paper, which are:</b>
+
+1.  No differential influence of memantine on MEG responses across control individuals and persons with bvFTD/PSP
+
+2.  Responses to drug in bvFTD/PSP persons are conditional on GABA concentration in frontal cortex
+
+<br>
+
+### 1) Group differences in drug response
+
+For simplicity purposes, we will just report the responses in one region (auditory cortex).
+
+</b>
+
+```{r} setwd("/Users/alistairperry/Documents/Cambridge/Project/Analysis/LFPs/newmaxfilter_icafixes/LFPs_COH_wrad_allMEGch_wfids/C_Plots/DrugAnalysis")}
+
+
+
 ```
-
-## Including Plots
 
 You can also embed plots, for example:
 
