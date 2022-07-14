@@ -29,13 +29,60 @@ knitr::opts_chunk$set(echo = TRUE)
 
 For simplicity purposes, we will just report the responses in one region (auditory cortex).
 
-</b>
+First load required packages (ensure they are installed)
 
-```{r} setwd("/Users/alistairperry/Documents/Cambridge/Project/Analysis/LFPs/newmaxfilter_icafixes/LFPs_COH_wrad_allMEGch_wfids/C_Plots/DrugAnalysis")}
-
-
-
+```{r message=FALSE}
+library(tidyverse)
+library(rstatix)
 ```
+
+<br>
+
+```{r}
+#Load data
+setwd("/Users/alistairperry/Documents/Cambridge/Project/Analysis/LFPs/newmaxfilter_icafixes/LFPs_COH_wrad_allMEGch_wfids/C_Plots/DrugAnalysis")
+
+datfname<-"LFP_RAud_MMNmean_rep3_ConsandPats_DrugInt.txt"
+
+MMNtab <- read.delim(datfname)
+
+#And print out
+print(MMNtab)
+```
+
+<br>
+
+Note, data needs to be in long format..
+
+```{r}
+#You will need ID as a column
+ID <- rep(seq(1,nrow(MMNtab)),1)
+MMNtab_wID <- data.frame(ID, MMNtab)
+
+#Now convert to long format
+MMNtab_long <- MMNtab_wID %>% gather(drug, MMN, meanMMNcol_PLA:meanMMNcol_MEM, factor_key = TRUE)
+
+#Ensure ID and drug session vars are factors
+MMNtab_long$ID <- as.factor(MMNtab_long$ID)
+MMNtab_long$drug <- as.factor(MMNtab_long$drug)
+```
+
+<br>
+
+We can now run our statistical analysis, with a 2x2 mixed ANOVA used to assess differential group responses to drug - here we set *group* as between-subjects and *drug session* the within-subjects factor:
+
+```{r}
+# Two-way mixed ANOVA test
+res.aov <- anova_test(
+  data = MMNtab_long, dv = MMN, wid = ID,
+  between = Group, within = drug
+  )
+get_anova_table(res.aov)
+```
+
+<br>
+
+From the output above, we find the *group x drug* interaction is non-significant (*p*=0.163), and hence can conclude that memantine does not have a differential group effect in the right auditory cortex.
 
 You can also embed plots, for example:
 
