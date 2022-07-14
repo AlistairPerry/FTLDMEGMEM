@@ -348,21 +348,29 @@ LFPdata_wide$Diag <- as.factor(LFPdata_wide$Diag)
 
 # Start scatter plot
 
+# This plot unique scale colour points by GABA 
+
 fig <- ggplot(LFPdata_wide, aes(GluGABArat, Diff, color = GABA)) + 
   
   
-  #Regression line
+  # Regression line
   
   geom_smooth(method = lm, size = 2, color = "black") +
+  
+  
+  # Data point features, shape by disease
   
   geom_point(size = 4, aes(color = GABA, shape=Diag)) +
                
   scale_shape_manual(values=c(15, 17)) +
   
+  
+  # Importantly, scale color by GABA values
+  
   scale_colour_gradient(low = "#fc9272", high = "#cb181d") +
   
-  #scale_colour_brewer(palette = "Reds") +
   
+  # Axis labels
   
   labs(y = expression(bold(paste(Delta, ' MMN (PLA-MEM) R AUD')))) + 
   
@@ -377,7 +385,9 @@ fig <- ggplot(LFPdata_wide, aes(GluGABArat, Diff, color = GABA)) +
   
   theme(legend.position = "none")
 
-
+  
+  #Write out fig
+  
   fig
 
   figfname<-paste(FigOutDir, "LFP_DrugEIInt_", "RAUD", "_scat.tiff", sep="")
@@ -385,148 +395,84 @@ fig <- ggplot(LFPdata_wide, aes(GluGABArat, Diff, color = GABA)) +
   ggsave(figfname, width = w, height = h)
 
 
-  
-  #Now including controls
-  
-  #ANCOVA
-  
-  
-  LFPdata_wide <- read.table("adv_ssst_newmaxf_fixICA_wfids_nodipcor_remo_nop10p19_LFPs_MRSIFGglugabaratassoc_meanMMN3_DrugDiff_ConsandPats_fullsample_stats_LMMtableforR_RAud.txt", header = TRUE)
-  
-  LFPdata_wide$Group <- as.factor(LFPdata_wide$Group)
+#Now including controls
+
+#For assessing interaction  
+    
+#ANCOVA
   
   
-  EIDrugDiffGrpInt <- aov(Diff ~ GluGABArat*Group, data = LFPdata_wide)
+LFPdata_wide <- read.table("adv_ssst_newmaxf_fixICA_wfids_nodipcor_remo_nop10p19_LFPs_MRSIFGglugabaratassoc_meanMMN3_DrugDiff_ConsandPats_fullsample_stats_LMMtableforR_RAud.txt", header = TRUE)
   
-  
-  sink("ANCOVA_drugglugabaratGroupInt_RAUD.txt")
-  
-  summary(EIDrugDiffGrpInt)
-  
-  sink()
-  
-  
-  
-  #Lastly group means
+LFPdata_wide$Group <- as.factor(LFPdata_wide$Group)
   
 
+#Run stats
   
-  #Set axis limits
+EIDrugDiffGrpInt <- aov(Diff ~ GluGABArat*Group, data = LFPdata_wide)
   
-  #y_lim_min <- -2
-  #y_lim_max <- 0.5
+
+#Write out reports
   
-  #coord_cartesian(ylim=c(y_lim_min, y_lim_max)) 
+sink("ANCOVA_drugglugabaratGroupInt_RAUD.txt")
+
+summary(EIDrugDiffGrpInt)
   
+sink()
   
-  #Group means
+
+
+#Supplementary: Moderating effect of Age ---------------------------------
   
-  #Start
-  
-  
-  f1 <- ggplot(my_sum, aes(fill=x, y=mean, x=x)) + 
-    
-    
-    
-    geom_bar(position="dodge", stat="identity", alpha = 0.7, width = 0.75, color = "black", size = 0.75) +
-    
-    
-    
-    scale_fill_manual(values = c("Blue", "Red")) +
-    
-    geom_errorbar(aes(x=x, ymin=mean, ymax=mean+se), width=0.4, colour="black", alpha=0.9, size=0.75) +
-    
-    
-    geom_point(data = d %>% filter(x =="1"), aes(x = xj, y = y), color = 'black', size = 2.5, alpha = .6) +
-    
-    geom_point(data = d %>% filter(x =="2"), aes(x = xj, y = y), color = 'black', size = 2.5, alpha = .6) + 
-    
-    scale_x_discrete(breaks=c(1,2), labels=c("CON", "FTLD")) +
-    
-    ylab("Glu/GABA rIFG") +
-    
-    xlab("") +
-    
-    theme_classic() +
-    
-    
-    
-    theme(plot.title = element_text(face="bold", size = 18, hjust = 0.5, color = "black"), axis.title.y = element_text(face="bold", size = 19)) + 
-    
-    theme(axis.text.x = element_text(face="bold", size = 19, color = "black"), axis.text.y = element_text(face="bold", size = 18, color = "black")) +
-    
-    
-    #Turn caption off
-    
-    theme(legend.position = "none")
+#For info on plotting continous moderator, see: https://cran.r-project.org/web/packages/interactions/vignettes/interactions.html#plotting-observed-data
   
   
+for (i in seq(1,length(ROInames))) {
+    
+    
+  #Setup and load ROI text file
+    
+  datfname <- paste("adv_ssst_newmaxf_fixICA_wfids_nodipcor_nop10p19_FIX_LFPs_MRSIFGgabacorassoc_meanMMN3_DrugDiff_Pats_fullsample_stats_LMMtableforR_", ROInames[i], ".txt", sep="")   
+    
+  LFPdata_wide <- read.table(datfname, header = TRUE)
+    
+    
+  LFPdata_wide$Diag <- as.factor(LFPdata_wide$Diag)
+    
+    
+  #Linear model fitting interaction
+    
+  fiti <- lm(Diff ~ GABA * Age, data = diff_data)
+    
+    
+  #Main interaction plot
+    
+  fig <- interact_plot(fiti, pred = GABA, modx = Age, plot.points = TRUE, x.label = "GABA rIFG (cor.)", y.label = expression(bold(paste(Delta, ' MMN (PLA-MEM) R AUD'))), colors = "red", point.size = 4) + 
+      
+      
+  #Manually edit text labels
+      
+  theme_classic() +
+      
+  theme(axis.text.x = element_text(color = "black", size = 17, face = "bold"), axis.text.y = element_text(color = "black", size = 17, face = "bold"), axis.title.x = element_text(color = "black", size = 19, face = "bold"), axis.title.y = element_text(color = "black", size = 19, face = "bold")) +
+      
+      
+  #Legend features
+      
+  theme(legend.key.size = unit(1, 'cm')) +
+      
+  theme(legend.text = element_text(size=12, color = "black", face = "bold"), legend.title = element_text(size=14, color = "black", face = "bold"))
+    
   
-  f1
+  #Write out figure and save
   
-  
-  figfname<-paste(FigOutDir, "GroupGluGABAratmean.tiff", sep="")
-  
+  fig
+    
+  figfname<-paste(FigOutDir, "LFP_DrugGABAInt_", ROInames[i], "_scat_AgeMod.tiff", sep="")
+    
   ggsave(figfname, width = w, height = h)
-  
-  
-  #Boxplot
-  
-  
-
-  
-  
-  #Supplementary: Moderating effect of Age ---------------------------------
-  
-  #For info on plotting continous moderator, see: https://cran.r-project.org/web/packages/interactions/vignettes/interactions.html#plotting-observed-data
-  
-  
-  for (i in seq(1,3)) {
     
     
-    #Setup and load ROI text file
-    
-    datfname <- paste("adv_ssst_newmaxf_fixICA_wfids_nodipcor_nop10p19_FIX_LFPs_MRSIFGgabacorassoc_meanMMN3_DrugDiff_Pats_fullsample_stats_LMMtableforR_", ROInames[i], ".txt", sep="")   
-    
-    LFPdata_wide <- read.table(datfname, header = TRUE)
-    
-    diff_data <- LFPdata_wide
-    
-    
-    diff_data$Diag <- as.factor(diff_data$Diag)
-    
-    
-    #Linear model fitting interaction
-    
-    fiti <- lm(Diff ~ GABA * Age, data = diff_data)
-    
-    
-    #Main interaction plot
-    
-    fig <- interact_plot(fiti, pred = GABA, modx = Age, plot.points = TRUE, x.label = "GABA rIFG (cor.)", y.label = expression(bold(paste(Delta, ' MMN (PLA-MEM) R AUD'))), colors = "red", point.size = 4) + 
-      
-      
-      #Manually edit text labels
-      
-      theme_classic() +
-      
-      theme(axis.text.x = element_text(color = "black", size = 17, face = "bold"), axis.text.y = element_text(color = "black", size = 17, face = "bold"), axis.title.x = element_text(color = "black", size = 19, face = "bold"), axis.title.y = element_text(color = "black", size = 19, face = "bold")) +
-      
-      
-      #Legend features
-      
-      theme(legend.key.size = unit(1, 'cm')) +
-      
-      theme(legend.text = element_text(size=12, color = "black", face = "bold"), legend.title = element_text(size=14, color = "black", face = "bold"))
-    
-    
-    fig
-    
-    figfname<-paste(FigOutDir, "LFP_DrugGABAInt_", ROInames[i], "_scat_AgeMod.tiff", sep="")
-    
-    ggsave(figfname, width = w, height = h)
-    
-    
-  }
+}
   
 #Finished
