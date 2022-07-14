@@ -49,7 +49,11 @@ These scripts will produce the following findings:
 
 ## RMarkdown
 
-Included also is [RMarkdown file](https://github.com/AlistairPerry/FTLDMEGMEM/blob/main/SourceSpace/Plots/DrugGABAInteraction.Rmd) and [resultant pdf](https://github.com/AlistairPerry/FTLDMEGMEM/blob/main/SourceSpace/Plots/DrugGABAInteraction.pdf) output, which detail the workflow steps to reproduce the two main findings above.
+Included also is [RMarkdown](https://github.com/AlistairPerry/FTLDMEGMEM/blob/main/SourceSpace/Plots/DrugGABAInteraction.Rmd) file and [resultant pdf](https://github.com/AlistairPerry/FTLDMEGMEM/blob/main/SourceSpace/Plots/DrugGABAInteraction.pdf) output, which detail the workflow steps to reproduce the two main findings above. An example:
+
+<br />
+
+<img width="617" alt="Screenshot 2022-07-14 at 12 39 07" src="https://user-images.githubusercontent.com/23748735/178974380-7fe84e0b-df05-4be5-827c-990f6c7f5d14.png">
 
 ## Python
 
