@@ -148,6 +148,8 @@ for (i in seq(1,length(ROInames))) {
   # Start panel
   MMN_drug_lc_plot <- ggplot(data = data, aes(x = GABA, y = MMN)) +
     
+  # Add all panel features  
+    
     # gray vertical lines to connect observations from same subject
     geom_segment(data = diff_data, aes(x = GABA, y = PLA,
                                        xend = GABA, yend = MEM),
@@ -206,20 +208,150 @@ for (i in seq(1,length(ROInames))) {
 # Loop finished
 
 
+# Glu/GABA ratio group differences  ------------------------------------
+
+# (Figure 4C)
+
+LFPdata_wide <- read.table("adv_ssst_newmaxf_fixICA_wfids_nodipcor_remo_nop10p19_LFPs_MRSIFGglugabaratassoc_ConsandPats.txt", header = TRUE)
 
 
+# Split data into groups
+
+CN <- subset(LFPdata_wide, Group == 1)
+
+Pat <- subset(LFPdata_wide, Group == 2)
+
+CNdat <- CN$GluGABArat
+Patdat <- Pat$GluGABArat
 
 
+# Setup for jittering points
+
+ncnt <- length(CNdat)
+npat <- length(Patdat)
+
+totalscans <- ncnt+npat
+
+x1 <- as.integer(totalscans)
+x1[1:ncnt] <- rep(1, each=ncnt)
+x1[(ncnt+1):totalscans] <- rep(2, each=npat)
+
+d <- data.frame(y = c(CNdat, Patdat), x = x1, PatSubgrp = LFPdata_wide$PatSubgrp)
 
 
-#Now E/I balance, just for RAUD
+# Now jitter
 
+set.seed(321)
+
+xj <- jitter(x1)
+
+
+# Calc means for box plots
+
+d$xj <- xj
+
+d$x <- as.factor(d$x)
+
+my_sum <- d %>%
+  group_by(x) %>% 
+  dplyr::summarise( 
+    n=n(),
+    mean=mean(y),
+    sd=sd(y)
+  ) %>%
+  mutate( se=sd/sqrt(n))
+
+
+my_sum_box <- d %>% 
+  group_by(x) %>% 
+  dplyr::summarise(
+    y0 = quantile(y, 0.05), 
+    y25 = quantile(y, 0.25), 
+    y50 = mean(y), 
+    y75 = quantile(y, 0.75), 
+    y100 = quantile(y, 0.95))
+
+
+# Start box plot
+
+d$PatSubgrp <- as.factor(d$PatSubgrp)
+
+f1_box <- ggplot(my_sum_box, aes(fill=x, x=x, y = y50)) +
+  
+  
+  #Start box
+  
+  geom_boxplot(aes(ymin = y0, lower = y25, middle = y50, upper = y75, ymax = y100),
+               position="dodge", stat="identity", alpha = 0.7, width = 0.75, color = "black", size = 0.75) + 
+  
+  
+  # Set box colour
+  
+  scale_fill_manual(values = c("Blue", "Red")) + 
+  
+  
+  # Individual data point aesthetics
+  
+  geom_point(data = d %>% filter(x =="1"), aes(x = xj, y = y), color = 'black', size = 3, alpha = .8) +
+  
+  geom_point(data = d %>% filter(x =="2"), aes(x = xj, y = y, shape = PatSubgrp), color = 'black', fill = 'black', size = 3, alpha = .8) + 
+  
+  scale_shape_manual(values=c(22, 24)) +
+  
+  
+  # Set labels and font style
+  
+  scale_x_discrete(breaks=c(1,2), labels=c("CON", "bvFTD/PSP")) +
+  
+  ylab("Glu/GABA rIFG") +
+  
+  xlab("") +
+  
+  theme_classic() +
+  
+  theme(plot.title = element_text(face="bold", size = 18, hjust = 0.5, color = "black"), axis.title.y = element_text(face="bold", size = 19)) + 
+  
+  theme(axis.text.x = element_text(face="bold", size = 19, color = "black"), axis.text.y = element_text(face="bold", size = 18, color = "black")) +
+  
+  
+  #Turn caption off
+  
+  theme(legend.position = "none")
+
+
+  #Produce plot in window
+
+  f1_box
+
+  #Now save
+  
+  figfname<-paste(FigOutDir, "GroupGluGABAratmean_box.tiff", sep="")
+
+  ggsave(figfname, width = w, height = h)
+
+
+  
+
+# Glu/GABA and Drug Diff Interaction --------------------------------------
+
+# Figure 4D
+  
+# Only for R AUD    
+  
+
+# Read data  
+    
 LFPdata_wide <- read.table("adv_ssst_newmaxf_fixICA_wfids_nodipcor_remo_nop10p19_LFPs_MRSIFGglugabaratassoc_meanMMN3_DrugDiff_Pats_fullsample_stats_LMMtableforR_RAud.txt", header = TRUE) 
 
 LFPdata_wide$Diag <- as.factor(LFPdata_wide$Diag)
 
 
+# Start scatter plot
+
 fig <- ggplot(LFPdata_wide, aes(GluGABArat, Diff, color = GABA)) + 
+  
+  
+  #Regression line
   
   geom_smooth(method = lm, size = 2, color = "black") +
   
@@ -277,64 +409,7 @@ fig <- ggplot(LFPdata_wide, aes(GluGABArat, Diff, color = GABA)) +
   
   #Lastly group means
   
-  LFPdata_wide <- read.table("adv_ssst_newmaxf_fixICA_wfids_nodipcor_remo_nop10p19_LFPs_MRSIFGglugabaratassoc_ConsandPats.txt", header = TRUE)
-  
-  
-  
-  CN <- subset(LFPdata_wide, Group == 1)
-  
-  Pat <- subset(LFPdata_wide, Group == 2)
-  
 
-  
-  CNdat <- CN$GluGABArat
-  Patdat <- Pat$GluGABArat
-  
-  ncnt <- length(CNdat)
-  npat <- length(Patdat)
-  
-  totalscans <- ncnt+npat
-  
-  
-  x1 <- as.integer(totalscans)
-  x1[1:ncnt] <- rep(1, each=ncnt)
-  x1[(ncnt+1):totalscans] <- rep(2, each=npat)
-  
-  
-  d <- data.frame(y = c(CNdat, Patdat), x = x1, PatSubgrp = LFPdata_wide$PatSubgrp)
-  
-  
-  #Start plotting
-  
-  set.seed(321)
-  
-  #xj <- jitter(x1, amount = .09)
-  xj <- jitter(x1)
-  
-  d$xj <- xj
-  
-  d$x <- as.factor(d$x)
-  
-  d$PatSubgrp <- as.factor(d$PatSubgrp)
-  
-  my_sum <- d %>%
-    group_by(x) %>% 
-    dplyr::summarise( 
-      n=n(),
-      mean=mean(y),
-      sd=sd(y)
-    ) %>%
-    mutate( se=sd/sqrt(n))
-  
-  
-  my_sum_box <- d %>% 
-    group_by(x) %>% 
-    dplyr::summarise(
-      y0 = quantile(y, 0.05), 
-      y25 = quantile(y, 0.25), 
-      y50 = mean(y), 
-      y75 = quantile(y, 0.75), 
-      y100 = quantile(y, 0.95))
   
   #Set axis limits
   
@@ -398,51 +473,7 @@ fig <- ggplot(LFPdata_wide, aes(GluGABArat, Diff, color = GABA)) +
   #Boxplot
   
   
-  f1_box <- ggplot(my_sum_box, aes(fill=x, x=x, y = y50)) +
-    
-    #stat_boxplot(geom ='errorbar', width = 0.6) +
-    
-    geom_boxplot(aes(ymin = y0, lower = y25, middle = y50, upper = y75, ymax = y100),
-                 position="dodge", stat="identity", alpha = 0.7, width = 0.75, color = "black", size = 0.75) + 
-    
-    scale_fill_manual(values = c("Blue", "Red")) + 
-    
-    geom_point(data = d %>% filter(x =="1"), aes(x = xj, y = y), color = 'black', size = 3, alpha = .8) +
-    
-    geom_point(data = d %>% filter(x =="2"), aes(x = xj, y = y, shape = PatSubgrp), color = 'black', fill = 'black', size = 3, alpha = .8) + 
-    
-    
-    scale_shape_manual(values=c(22, 24)) +
-    
-    #scale_color_manual(values = c('#E69F00', "#00BA38")) +
-    
-    scale_x_discrete(breaks=c(1,2), labels=c("CON", "bvFTD/PSP")) +
-    
-    ylab("Glu/GABA rIFG") +
-    
-    xlab("") +
-    
-    theme_classic() +
-    
-    
-    
-    theme(plot.title = element_text(face="bold", size = 18, hjust = 0.5, color = "black"), axis.title.y = element_text(face="bold", size = 19)) + 
-    
-    theme(axis.text.x = element_text(face="bold", size = 19, color = "black"), axis.text.y = element_text(face="bold", size = 18, color = "black")) +
-    
-    
-    #Turn caption off
-    
-    theme(legend.position = "none")
-  
-  
-  
-  f1_box
-  
-  
-  figfname<-paste(FigOutDir, "GroupGluGABAratmean_box.tiff", sep="")
-  
-  ggsave(figfname, width = w, height = h)
+
   
   
   #Supplementary: Moderating effect of Age ---------------------------------
