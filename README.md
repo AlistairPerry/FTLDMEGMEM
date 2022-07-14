@@ -20,7 +20,7 @@ The resources contained here can be allocated into 3 sections:
 <br />
 
 
-Most importantly, the following information details how the main findings were produced, relating to sections 2 and 3 above.
+Most importantly, the following information details how the main findings were produced, relating to sections 2/3.
 
 <br />
 
