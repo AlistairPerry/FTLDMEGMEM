@@ -30,7 +30,7 @@ os.chdir(work_dir)
 
 #Regions to load from text file
 
-base_fname = 'LFPs_MRSIFGgabacorassoc_meanMMN3_DrugDiff_Pats_fullsample_stats_LMMtableforR'
+base_fname = 'LFPs_MRSIFGgabacorassoc_meanMMN3_DrugDiff_Pats_fullsample_stats_LMMtableforR_'
 
 ROInames = ['RIFG', 'RSTG', 'RAUD']
 
@@ -40,8 +40,15 @@ Start for loop, picking up each ROI in every loop
 
 """
 
-for ROI in ROInames:
+for ROI in range(len(ROInames)):
     
-    dat_fname = base_fname + ROInames[ROI] + '_.txt'
+    #Identify filename based on parts
+    
+    dat_fname = ''.join([base_fname, ROInames[ROI], '.txt'])
+    
+    #Read txt file with pandas
+    
+    MMNtab = pd.read_table(dat_fname)
 
-    print(dat_fname)
+    
+    print(MMNtab)
