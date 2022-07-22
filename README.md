@@ -57,5 +57,7 @@ Included also is [RMarkdown](https://github.com/AlistairPerry/FTLDMEGMEM/blob/ma
 
 ## Python
 
+Contained are principal findings replicated with Python Libraries.
 
+Plus bonus of performing Machine learning techniques
 
