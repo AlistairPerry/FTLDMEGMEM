@@ -57,7 +57,7 @@ Included also is [RMarkdown](https://github.com/AlistairPerry/FTLDMEGMEM/blob/ma
 
 ## Python
 
-Contained are principal findings replicated with Python Libraries.
+Contained are principal findings reproduced with Python Libraries (pandas, scypy, seaborn, sklearn)
 
 Plus bonus of performing Machine learning techniques
 
