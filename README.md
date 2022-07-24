@@ -80,6 +80,10 @@ The __Leave-One-Out Cross-Validation (or LOOCV)__ works by fitting a (_Random Fo
 We can run this with the following code:
 
 ```python
+    from sklearn.model_selection import LeaveOneOut
+    from sklearn.model_selection import cross_val_score
+    from sklearn.ensemble import RandomForestRegressor
+    
     #Create LOOCV procedure
     CrossVal = LeaveOneOut()
     
