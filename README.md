@@ -93,6 +93,8 @@ We can run this with the following code:
     #Evaluate model
     CrossVal_scores = cross_val_score(RF_model, X, y, scoring='neg_mean_absolute_error', cv=CrossVal)
 ```
+* _Where X and y represent independent and dependent variables, respectively._
+
 <br />
 
 And we can use the mean absolute error (MAE) to assess model performance which is appropriate for regression:
