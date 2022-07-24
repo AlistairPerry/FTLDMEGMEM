@@ -57,7 +57,29 @@ Included also is [RMarkdown](https://github.com/AlistairPerry/FTLDMEGMEM/blob/ma
 
 ## Python
 
-Contained are principal findings reproduced with Python Libraries (pandas, scypy, seaborn, sklearn)
+Contained are principal findings reproduced with [Python](https://github.com/AlistairPerry/FTLDMEGMEM/blob/main/SourceSpace/Plots/LMM_druggabaint_py.py) Libraries (i.e. pandas, scypy, seaborn, sklearn)
 
-Plus bonus of performing Machine learning techniques
+<br />
+
+The added bonus is that using machine learning tools it assesses how well we can predict drug responses based on patients GABA concentrations.
+
+<br />
+
+With Random Forest Regression and Leave-One-Out-Cross-Validation, indeed we find a relationship between __predicted drug responses__ (y-axis) from our model based on __patients actual responses__ (x-axis):
+
+<br />
+
+![DrugGABAInt_LOOCV_RAUD](https://user-images.githubusercontent.com/23748735/180659291-b0b44552-d813-4743-9715-433847650694.png)
+
+<br />
+
+The __Leave-One-Out Cross-Validation (or LOOCV)__ works by fitting a (_Random Forest_) Regression model to all but one subject, and then repeated with each subject left out. By design it assesses how good our model is based upon unseen data (i.e. left out subject).
+
+<br />
+
+We can run this with the following code:
+
+<br />
+
+And we can use the mean absolute error (MAE) to assess model performance which is appropriate for regression:
 
