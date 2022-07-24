@@ -80,18 +80,18 @@ The __Leave-One-Out Cross-Validation (or LOOCV)__ works by fitting a (_Random Fo
 We can run this with the following code:
 
 ```python
-    from sklearn.model_selection import LeaveOneOut
-    from sklearn.model_selection import cross_val_score
-    from sklearn.ensemble import RandomForestRegressor
+from sklearn.model_selection import LeaveOneOut
+from sklearn.model_selection import cross_val_score
+from sklearn.ensemble import RandomForestRegressor
     
-    #Create LOOCV procedure
-    CrossVal = LeaveOneOut()
+#Create LOOCV procedure
+CrossVal = LeaveOneOut()
     
-    #Create model
-    RF_model = RandomForestRegressor(random_state=1)
+#Create model
+RF_model = RandomForestRegressor(random_state=1)
     
-    #Evaluate model
-    CrossVal_scores = cross_val_score(RF_model, X, y, scoring='neg_mean_absolute_error', cv=CrossVal)
+#Evaluate model
+CrossVal_scores = cross_val_score(RF_model, X, y, scoring='neg_mean_absolute_error', cv=CrossVal)
 ```
 * _Where X and y represent independent and dependent variables, respectively._
 
@@ -100,9 +100,8 @@ We can run this with the following code:
 And we can use the mean absolute error (MAE) to assess model performance which is appropriate for regression:
 
 ```python
-    #Report performance
-    print('Mean absolute error is: %.3f (%.3f)' % (np.mean(CrossVal_scores), np.std(CrossVal_scores)))
-
+#Report performance
+print('Mean absolute error is: %.3f (%.3f)' % (np.mean(CrossVal_scores), np.std(CrossVal_scores)))
 ```
 
 <br />
