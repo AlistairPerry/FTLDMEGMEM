@@ -24,6 +24,9 @@ import matplotlib.pyplot as plt
 import os 
 
 
+perform_LOOCV = True 
+
+
 #Set data dir
 
 work_dir = "/Users/alistairperry/Documents/Cambridge/Project/Analysis/LFPs/newmaxfilter_icafixes/LFPs_COH_wrad_allMEGch_wfids/C_Plots/DrugAnalysis/MRS"
@@ -86,17 +89,19 @@ for ROI in range(len(ROInames)):
     
     
     #Figures
-    sns.regplot(data=MMNtab, x="GABA", y="Diff", color="r")    
+    sns.regplot(data=MMNtab, x="GABA", y="Diff", color="r")
     
     #Plot attributes
     plt.xlabel("GABA rIFG (cor)", fontsize=12, fontweight="bold")
     plt.ylabel("MMN (PLA-MEM)", fontsize=12, fontweight="bold")
     plt.title(ROInames[ROI], fontsize=15, fontweight="bold")
+
+
+    #Save  
+    outfname = FigOutDir + "/" + "DrugGABAInt_" + "Scatt_" + ROInames[ROI] + ".tiff"
+    plt.savefig(outfname, dpi=300, format='tiff')
     plt.show()
-
-
-    #Bonus: LOOCV
-   
+    
 
 """
 
@@ -119,3 +124,83 @@ print(df)
 outfname = FigOutDir + "/" + "DrugGABAInt_corrvalues.csv"
 
 df.to_csv(outfname, sep=",", index=False)
+
+
+"""
+
+Optional ML
+
+"""
+
+while perform_LOOCV == True:
+
+    """
+
+    Perform Random Forest and LOOCV to determine performance
+    
+    Only right auditory cortex for computational reasons
+    
+    Import required libraries here
+
+    """
+
+    from sklearn.model_selection import LeaveOneOut
+    from sklearn.model_selection import cross_val_score
+    from sklearn.ensemble import RandomForestRegressor
+    from sklearn.model_selection import cross_val_predict
+    
+    #Start
+    #Load and define variables again
+    dat_fname = ''.join([base_fname, 'RAUD', '.txt'])
+    
+    MMNtab = pd.read_table(dat_fname)
+    
+    data_values = MMNtab.values
+    
+    #GABA and Diff values defined by 1st and 4th columns, respectively
+    X = data_values[:,1]
+    y = data_values[:,4]
+    
+    X = np.array(X).reshape(-1,1)
+    
+    #Create LOOCV procedure
+    CrossVal = LeaveOneOut()
+    
+    #Create model
+    RF_model = RandomForestRegressor(random_state=1)
+    
+    #Evaluate model
+    CrossVal_scores = cross_val_score(RF_model, X, y, scoring='neg_mean_absolute_error', cv=CrossVal)
+
+    #Predict scores
+    CrossVal_predy = cross_val_predict(RF_model, X, y, cv=CrossVal)
+
+    corres = pearsonr(y, CrossVal_predy)
+
+    #Force positive
+    CrossVal_scores = np.abs(CrossVal_scores)
+    
+    #Report performance
+    print('Mean absolute error is: %.3f (%.3f)' % (np.mean(CrossVal_scores), np.std(CrossVal_scores)))
+    
+    #Plot actual-predicted relationship
+    sns.regplot(x=y, y=CrossVal_predy, color="r")
+    
+    #Plot attributes
+    plt.xlabel(r'Actual values ($\Delta$ MMN) ', fontsize=12, fontweight="bold")
+    plt.ylabel("Predicted", fontsize=12, fontweight="bold")
+    plt.title("Random Forest + LOOCV", fontsize=15, fontweight="bold")
+    
+    #And don't forget model results
+    rval=round(corres[0], 2)
+    pval=round(corres[1], 3)
+    figstr = f'r={rval}, p={pval}'
+    plt.text(min(y), 0.05, figstr, fontweight="bold")
+
+    #Save  
+    outfname = FigOutDir + "/" + "DrugGABAInt_" + "LOOCV_" + "RAUD" + ".png"
+    plt.savefig(outfname, dpi=300, format='png')
+    plt.show()
+    
+    #Complete
+    break
