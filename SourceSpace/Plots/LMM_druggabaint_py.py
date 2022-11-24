@@ -126,6 +126,7 @@ outfname = FigOutDir + "/" + "DrugGABAInt_corrvalues.csv"
 df.to_csv(outfname, sep=",", index=False)
 
 
+
 """
 
 Optional ML
@@ -155,13 +156,15 @@ while perform_LOOCV == True:
     
     MMNtab = pd.read_table(dat_fname)
     
-    data_values = MMNtab.values
     
+    MMNtab_vint = MMNtab[['GABA', 'Diff', 'Age']]
+        
+        
     #GABA and Diff values defined by 1st and 4th columns, respectively
-    X = data_values[:,1]
-    y = data_values[:,4]
+    X = MMNtab_vint[['GABA', 'Age']]
+    y = MMNtab_vint['Diff']
     
-    X = np.array(X).reshape(-1,1)
+    #X = np.array(X).reshape(-1,1)
     
     #Create LOOCV procedure
     CrossVal = LeaveOneOut()
@@ -170,7 +173,7 @@ while perform_LOOCV == True:
     RF_model = RandomForestRegressor(random_state=1)
     
     #Evaluate model
-    CrossVal_scores = cross_val_score(RF_model, X, y, scoring='neg_mean_absolute_error', cv=CrossVal)
+    CrossVal_scores = cross_val_score(RF_model, X, y, scoring='neg_mean_squared_error', cv=CrossVal)
 
     #Predict scores
     CrossVal_predy = cross_val_predict(RF_model, X, y, cv=CrossVal)
@@ -178,28 +181,35 @@ while perform_LOOCV == True:
     corres = pearsonr(y, CrossVal_predy)
 
     #Force positive
-    CrossVal_scores = np.abs(CrossVal_scores)
+    #CrossVal_scores = np.abs(CrossVal_scores)
     
     #Report performance
-    print('Mean absolute error is: %.3f (%.3f)' % (np.mean(CrossVal_scores), np.std(CrossVal_scores)))
+    print('Mean squared error is: %.3f (%.3f)' % (np.mean(CrossVal_scores), np.std(CrossVal_scores)))
     
     #Plot actual-predicted relationship
     sns.regplot(x=y, y=CrossVal_predy, color="r")
     
     #Plot attributes
-    plt.xlabel(r'Actual values ($\Delta$ MMN) ', fontsize=12, fontweight="bold")
+    plt.xlabel(r'Actual values ($\Delta$ MEG Drug Response) ', fontsize=12, fontweight="bold")
     plt.ylabel("Predicted", fontsize=12, fontweight="bold")
     plt.title("Random Forest + LOOCV", fontsize=15, fontweight="bold")
+
     
     #And don't forget model results
     rval=round(corres[0], 2)
     pval=round(corres[1], 3)
     figstr = f'r={rval}, p={pval}'
     plt.text(min(y), 0.05, figstr, fontweight="bold")
+    
+    
+    mse=round(np.mean(CrossVal_scores), 3)
+    mse_sd=round(np.std(CrossVal_scores), 3)
+    figstr = f'MSE={mse} (SD={mse_sd})'
+    plt.text(min(y), 0.025, figstr, fontweight="bold")
 
     #Save  
     outfname = FigOutDir + "/" + "DrugGABAInt_" + "LOOCV_" + "RAUD" + ".png"
-    plt.savefig(outfname, dpi=300, format='png')
+    plt.savefig(outfname, dpi=100, format='png')
     plt.show()
     
     #Complete
