@@ -92,7 +92,7 @@ CrossVal = LeaveOneOut()
 RF_model = RandomForestRegressor(random_state=1)
     
 #Evaluate model
-CrossVal_scores = cross_val_score(RF_model, X, y, scoring='neg_mean_absolute_error', cv=CrossVal)
+CrossVal_scores = cross_val_score(RF_model, X, y, scoring='neg_mean_squared_error', cv=CrossVal)
 ```
 * _Where X and y represent independent and dependent variables, respectively._
 
@@ -102,7 +102,7 @@ And we can use the mean absolute error (MAE) to assess model performance which i
 
 ```python
 #Report performance
-print('Mean absolute error is: %.3f (%.3f)' % (np.mean(CrossVal_scores), np.std(CrossVal_scores)))
+print('Mean squared error is: %.3f (%.3f)' % (np.mean(CrossVal_scores), np.std(CrossVal_scores)))
 ```
 
 <br />
