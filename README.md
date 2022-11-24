@@ -108,4 +108,4 @@ print('Mean squared error is: %.3f (%.3f)' % (np.mean(CrossVal_scores), np.std(C
 <br />
 
 
-Which reveals the mean error across cross-validations in predicting patients drug responses is __0.033__ (with SD = 0.024).
+Which reveals the mean squared error across cross-validations in predicting patients drug responses is __-0.002__ (with SD = 0.002).
