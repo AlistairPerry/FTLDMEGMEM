@@ -94,11 +94,11 @@ RF_model = RandomForestRegressor(random_state=1)
 #Evaluate model
 CrossVal_scores = cross_val_score(RF_model, X, y, scoring='neg_mean_squared_error', cv=CrossVal)
 ```
-* _Where X and y represent independent and dependent variables, respectively._
+_Where X (patients disease state and age) and y (change drug brain response) represent independent and dependent variables, respectively._
 
 <br />
 
-And we can use the mean absolute error (MAE) to assess model performance which is appropriate for regression:
+And we can use the mean squared error (MSE) to assess model performance which is appropriate for regression:
 
 ```python
 #Report performance
